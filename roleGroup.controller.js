@@ -44,14 +44,13 @@ async function list(req, res, next) {
       //kiểm tra IAM_ENABLE == "TRUE"
       if (process.env.IAM_ENABLE == "TRUE") {
         //kiểm tra clientId có trong tb clientIam không
-        const IamClient = await Client.find({ clientId: clientId })
+        const IamClient = await Client.findOne({ clientId: clientId })
         if (IamClient) {
           const ClientIam = await checkClientIam(IamClient)
           //kiểm tra iamClientId và iamClientSecret tồn tại không
           if (ClientIam.iamClientId || ClientIam.iamClientSecret) {
-            //lấy được accesstoken từ response.data.access_token
+            //lấy được accesstoken từ hàm gettoken
             const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
-            console.log(access_token)
             if (access_token) {
               const data = await getApi.getListsRoles(host, access_token, clientId)
               return res.json({ data: data })
