@@ -6,6 +6,7 @@ const axios = require('axios');
 const qs = require('qs');
 const https = require('https');
 const GetToken = require('./service/getToken')
+const {getRoleAttributes} = require('./service/getApi')
 const dotenv = require('dotenv');
 const getApi = require('./service/getApi')
 const checkClientIam = require('./service/checkClientIam')
@@ -431,51 +432,74 @@ async function deletedList(req, res, next) {
 function get(req, res) {
   res.json(req.roleGroup);
 }
+
+/**
+ * Lấy các vai trò kinh doanh của người dùng từ IAM
+ * @param {Object} req - Đối tượng yêu cầu
+ * @param {Object} res - Đối tượng phản hồi
+ * @param {Function} next - Hàm middleware tiếp theo
+ * @returns {Object} Các vai trò kinh doanh của người dùng
+ */
 async function iamUserBussinessRole(req, res, next) {
   try {
+    // Lấy ID người dùng từ các tham số yêu cầu
     const { userId } = req.params;
 
+    // Nếu không có ID người dùng, trả về phản hồi lỗi
     if (!userId) {
-      return res.status(400).json({ msg: 'userId required' });
+      return res.status(400).json({ msg: 'Yêu cầu ID người dùng' });
     }
 
+    // Nếu IAM không được kích hoạt, lấy vai trò từ cơ sở dữ liệu cục bộ
     if (!process.env.IAM_ENABLE) {
       const role = await RoleGroup.findOne({ userId });
 
+      // Nếu không tìm thấy vai trò, trả về phản hồi không tìm thấy
       if (!role) {
-        return res.status(404).json({ msg: 'Role not found' });
+        return res.status(404).json({ msg: 'Không tìm thấy vai trò' });
       }
+
+      // Trả về vai trò từ cơ sở dữ liệu cục bộ
       return res.json(role);
     }
 
+    // Tìm IAM client
     const IamClient = await Client.find();
-    console.log(IamClient);
+
+    // Nếu không tìm thấy IAM client, trả về phản hồi không tìm thấy
     if (!IamClient) {
-      return res.status(404).json({ msg: 'IamClient not found' });
-
+      return res.status(404).json({ msg: 'Không tìm thấy IamClient' });
     }
-    const iamClientId = IamClient[0].iamClientId
-    const iamClientSecret = IamClient[0].iamClientSecret
 
-    const iam = await Client.find({ iamClientId: iamClientId, iamClientSecret: iamClientSecret })
-    console.log(iam);
+    // Lấy ID và mật khẩu của IAM client
+    const iamClientId = IamClient[0].iamClientId;
+    const iamClientSecret = IamClient[0].iamClientSecret;
 
+    // Tìm IAM client với ID và mật khẩu cung cấp
+    const iam = await Client.find({ iamClientId, iamClientSecret });
+
+    // Nếu không tìm thấy IAM client, trả về phản hồi chỉ ra cấu hình IAM bị thiếu
     if (!iam) {
-      return res.json('Missing IAM config for clientId')
+      return res.json('Thiếu cấu hình IAM cho clientId');
     }
 
-    const token = await getToken(ROLE_VIEW_SCOPE, iamClientId, iamClientSecret);
-    // console.log(token);
+    // Lấy token cho phạm vi 'internal_role_mgt_view'
+    const token = await GetToken('internal_role_mgt_view', iamClientId, iamClientSecret);
+
+    // Nếu không lấy được token, trả về phản hồi lỗi
     if (!token) {
-      return res.status(400).json({ msg: 'Failed to get IAM token' });
+      return res.status(400).json({ msg: 'Không thể lấy token IAM' });
     }
 
+    // Lấy các thuộc tính vai trò cho người dùng từ IAM
     const roleAttributes = await getRoleAttributes(userId, token);
-    // console.log(roleAttributes);
+
+    // Nếu không lấy được các thuộc tính vai trò, trả về phản hồi lỗi
     if (!roleAttributes) {
-      return res.status(400).json({ msg: 'Failed to get roles' });
+      return res.status(400).json({ msg: 'Không thể lấy vai trò' });
     }
 
+    // Chuyển đổi các thuộc tính vai trò sang định dạng mong muốn
     const convertedRole = {
       userId: userId,
       roles: roleAttributes.permissions.map(role => ({
@@ -484,12 +508,15 @@ async function iamUserBussinessRole(req, res, next) {
       })),
     };
 
+    // Trả về vai trò đã chuyển đổi
     return res.json(convertedRole);
   } catch (error) {
+    // Ghi log và trả về phản hồi lỗi máy chủ nội bộ trên mọi lỗi
     console.error(error);
-    return res.status(500).json({ msg: 'Internal Server Error' });
+    return res.status(500).json({ msg: 'Lỗi Máy chủ Nội bộ' });
   }
 }
+
 module.exports = {
   list,
   load,
