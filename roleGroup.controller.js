@@ -38,7 +38,7 @@ async function list(req, res, next) {
       return res.status(400).json({ message: "ClientId required" })
     }
     else {
-      //kiểm tra IAM_ENABLE == "TRUE"
+      //kiểm tra IAM_ENABLE == "TRUE" call api get list roles
       if (process.env.IAM_ENABLE == "TRUE") {
         //kiểm tra clientId có trong tb clientIam không
         const IamClient = await Client.findOne({ clientId: clientId })
@@ -63,7 +63,7 @@ async function list(req, res, next) {
         }
       }
       else {
-        //nếu proccess.env.enable != "TRUE" tìm các bản ghi có clientId trùng khớp
+        //nếu proccess.env.enable != "TRUE" tìm các bản ghi trong tb roleGroups có clientId trùng khớp
         console.log('zo day')
         const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
         return res.json(listRoleGroups);
