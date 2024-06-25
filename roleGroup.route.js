@@ -17,7 +17,6 @@ router
 
 router
   .route("/scim2/Users")
-  .get(userController.getToken)
   .post(userController.createUser)
 
 router.route('/getRole/:userId').get(roleGroupCtrl.iamUserBussinessRole);

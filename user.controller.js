@@ -1,104 +1,40 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const axios = require('axios');
-const qs = require('qs');
 const Log = require('./log.model');
 const Client = require('./client.model');
+const getToken = require("./service/getToken")
 const clientId = 'F71GS9fzJUpwfgAyVcb8iBndQWEa';
 const clientSecret = 'cEfVp17FnyLBEIfv5JLs75n2EZA1yAK2KNCU8ffJwaIa';
 const host = `https://identity.lifetek.vn`;
-const tokenEndpoint = `${host}:9443/oauth2/token`;
 
-const ROLE_VIEW_SCOPE = 'internal_role_mgt_view';
 const USER_CREATE_SCOPE = 'internal_user_mgt_create';
-const USER_VIEW_SCOPE = 'internal_user_mgt_view';
 const USED_SCOPE = USER_CREATE_SCOPE;
 
-const getToken = async (scope) => {
-    const data = qs.stringify({
-        'grant_type': 'client_credentials',
-        'scope': scope
-    });
-    const iam = await Client.findOne({ clientId, clientSecret });
-    if (iam) {
-        const config = {
-            method: 'post',
-            url: tokenEndpoint,
-            headers: {
-                'Authorization': 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64'),
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            data: data
-        };
-
-        try {
-            const response = await axios(config);
-            return response.data.access_token;
-        } catch (error) {
-            return console.error('Error fetching access token:', error.response ? error.response.data : error.message);
-        };
-    }
-    else {
-        return console.log("Missing IAM config for clientId, clientSecret")
-    }
-
-};
-
-const getUserAttributes = async (username, accessToken) => {
-    const userEndpoint = `${host}:9443/scim2/Users?filter=userName eq "${username}"`;
-
-    const config = {
-        method: 'get',
-        url: userEndpoint,
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        }
-    };
-
-    try {
-        const response = await axios(config);
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 403) {
-            return console.error('Không có quyền thực hiện yêu cầu:', error.response.data);
-        } else {
-            return console.error('Error fetching user attributes:', error.response ? error.response.data : error.message);
-        }
-    };
-};
-
-const getRoleAttributes = async (userId, accessToken) => {
-    const userEndpoint = `https://identity.lifetek.vn:9443/scim2/v2/Roles/${userId}`;
-
-    const config = {
-        method: 'get',
-        url: userEndpoint,
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        }
-    };
-
-    try {
-        const response = await axios(config);
-        return console.log('response.data', response.data);
-    } catch (error) {
-        return console.error('Error fetching user attributes:', error.response ? error.response.data : error.message);
-    };
-};
-
 const createUser = async (req, res) => {
-    const accessToken = await getToken(USED_SCOPE);
+    // Địa chỉ endpoint của API để tạo người dùng
     const userEndpoint = `${host}:9443/scim2/Users`;
+
+    // Lấy thông tin từ body của request
     const { body } = req;
-    const iam = await Client.findOne({ clientId, clientSecret }).countDocuments()
+
+    // Tìm thông tin IAM từ database dựa trên clientId và clientSecret
+    const iam = await Client.findOne({ iamClientId: clientId, iamClientSecret: clientSecret });
+
+    // Kiểm tra nếu IAM không được bật
     if (process.env.IAM_ENABLE !== "TRUE") {
-        return res.json("IAM is disabled, user creation is not allowed.")
+        return res.json("IAM is disabled, user creation is not allowed.");
     }
-    if (iam <= 0) {
-        return res.json('Missing IAM config for clientId, clientSecret ')
+
+    // Kiểm tra nếu không tìm thấy cấu hình IAM
+    if (!iam) {
+        return res.json('Missing IAM config for clientId, clientSecret ');
     }
+
+    // Lấy access token từ IAM
+    const accessToken = await getToken(USED_SCOPE, iam.iamClientId, iam.iamClientSecret);
+
+    // Tạo đối tượng người dùng với thông tin từ body của request
     const user = {
         "schemas": [],
         "name": {
@@ -115,6 +51,8 @@ const createUser = async (req, res) => {
             }
         ]
     };
+
+    // Cấu hình cho yêu cầu HTTP POST để tạo người dùng
     const config = {
         method: 'post',
         url: userEndpoint,
@@ -126,22 +64,28 @@ const createUser = async (req, res) => {
     };
 
     try {
+        // Gửi yêu cầu tạo người dùng
         const response = await axios(config);
+
+        // Trả về phản hồi thành công nếu người dùng được tạo thành công
         res.status(200).json({
             status: "success",
             data: response.data,
             message: "User created successfully"
-        })
-        // Log success
+        });
+
+        // Ghi log cho hành động tạo người dùng thành công
         const log = new Log({
             action: 'createUser',
             status: 'success',
             response: response.data
         });
         await log.save();
-        return
+
+        return;
     } catch (error) {
-        if (error.response && error.response.status === 409) { // HTTP 409 Conflict
+        // Xử lý lỗi nếu có xảy ra
+        if (error.response && error.response.status === 409) { // HTTP 409 Conflict trùng userName
             return res.json('User already exists.');
         } else if (error.response && error.response.status === 403) {
             return res.json('There is no authority to make the request:', error.response.data);
@@ -152,6 +96,5 @@ const createUser = async (req, res) => {
 };
 
 module.exports = {
-    getToken,
     createUser
 };
