@@ -1,7 +1,6 @@
 // eslint-disable-next-line new-cap
 const router = require('express').Router();
 const roleGroupCtrl = require('./roleGroup.controller');
-const userController = require('./user.controller');
 
 router
   .route('/')
@@ -14,10 +13,6 @@ router
   .get(roleGroupCtrl.get)
   .delete(roleGroupCtrl.del)
   .put(roleGroupCtrl.update);
-
-router
-  .route("/scim2/Users")
-  .post(userController.createUser)
 
 router.route('/getRole/:userId').get(roleGroupCtrl.iamUserBussinessRole);
 

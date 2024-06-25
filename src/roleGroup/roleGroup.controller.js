@@ -1,15 +1,15 @@
 const RoleGroup = require('./roleGroup.model');
-const Client = require('./client.model')
+const Client = require('../model/client.model')
 const httpStatus = require('http-status');
 const lodash = require('lodash');
 const axios = require('axios');
 const qs = require('qs');
 const https = require('https');
-const GetToken = require('./service/getToken')
-const {getRoleAttributes} = require('./service/getApi')
+const GetToken = require('../service/getToken')
+const {getRoleAttributes} = require('../service/getApi')
 const dotenv = require('dotenv');
-const getApi = require('./service/getApi')
-const checkClientIam = require('./service/checkClientIam')
+const getApi = require('../service/getApi')
+const checkClientIam = require('../service/checkClientIam')
 dotenv.config()
 
 /**

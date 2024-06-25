@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const conn = require('./appConn');
+const conn = require('../config/appConn');
 
 const clientIamSchema = new mongoose.Schema(
     {
