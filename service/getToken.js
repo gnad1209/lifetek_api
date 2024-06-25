@@ -32,4 +32,5 @@ const getToken = async (scope, iamClientId, iamClientSecret) => {
         throw error;
     }
 };
+
 module.exports = getToken

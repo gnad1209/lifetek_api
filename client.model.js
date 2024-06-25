@@ -11,5 +11,4 @@ const clientIamSchema = new mongoose.Schema(
         timestamps: true,
     },
 );
-
 module.exports = conn.model('clientiam', clientIamSchema);
