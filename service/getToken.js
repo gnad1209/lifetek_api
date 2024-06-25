@@ -7,7 +7,6 @@ const agent = new https.Agent({
     rejectUnauthorized: false,
 });
 
-
 const getToken = async (scope, iamClientId, iamClientSecret) => {
     const data = qs.stringify({
         'grant_type': 'client_credentials',

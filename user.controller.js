@@ -1,5 +1,6 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
+
 const axios = require('axios');
 const Log = require('./log.model');
 const Client = require('./client.model');
