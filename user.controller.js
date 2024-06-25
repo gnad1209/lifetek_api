@@ -2,8 +2,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const axios = require('axios');
 const qs = require('qs');
-const Log = require('./logModel');
-const Client = require('./clientModel');
+const Log = require('./log.model');
+const Client = require('./client.model');
 const clientId = 'F71GS9fzJUpwfgAyVcb8iBndQWEa';
 const clientSecret = 'cEfVp17FnyLBEIfv5JLs75n2EZA1yAK2KNCU8ffJwaIa';
 const host = `https://identity.lifetek.vn`;

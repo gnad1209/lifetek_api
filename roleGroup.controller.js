@@ -1,9 +1,5 @@
-
 const RoleGroup = require('./roleGroup.model');
-const Employee = require('./employee.model');
-const RoleDeparment = require('./roleDepartment.model');
-const OrganizationUnit = require('./organizationUnit.model');
-const Client = require('./clientModel')
+const Client = require('./client.model')
 const httpStatus = require('http-status');
 const lodash = require('lodash');
 const axios = require('axios');
