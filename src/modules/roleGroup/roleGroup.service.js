@@ -5,7 +5,7 @@ const agent = new https.Agent({
     rejectUnauthorized: false,
 });
 
-const getListsRoles = async (host, access_token, clientId) => {
+const getListRoles = async (host, access_token, clientId) => {
     const userEndpoint = `${host}?clientId=${clientId}`;
     const configRole = {
         method: 'get',
@@ -62,7 +62,7 @@ const checkClientIam = (IamClient) => {
 }
 
 module.exports = {
-    getListsRoles,
+    getListRoles,
     getRoleAttributes,
     checkClientIam
 }
