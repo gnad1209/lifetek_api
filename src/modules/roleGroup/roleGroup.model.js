@@ -1,8 +1,7 @@
 const Promise = require('bluebird');
 const mongoose = require('mongoose');
-const httpStatus = require('http-status');
-// const APIError = require('../../helpers/errors/APIError');
-const conn = require('../config/appConn');
+
+const conn = require('../../config/appConn');
 
 const roleGroupSchema = new mongoose.Schema(
   {

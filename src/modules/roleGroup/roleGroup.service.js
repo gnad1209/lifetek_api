@@ -1,7 +1,5 @@
 const https = require('https');
 const axios = require('axios')
-// const host = `https://identity.lifetek.vn`;
-// const tokenEndpoint = `${host}:9443/oauth2/token`;
 
 const agent = new https.Agent({
     rejectUnauthorized: false,
@@ -50,7 +48,21 @@ const getRoleAttributes = async (roleCode, accessToken) => {
     }
 };
 
+const checkClientIam = (IamClient) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            console.log(IamClient)
+            const iamClientId = IamClient.iamClientId;
+            const iamClientSecret = IamClient.iamClientSecret;
+            resolve({ iamClientId: iamClientId, iamClientSecret: iamClientSecret })
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
+
 module.exports = {
     getListsRoles,
-    getRoleAttributes
+    getRoleAttributes,
+    checkClientIam
 }

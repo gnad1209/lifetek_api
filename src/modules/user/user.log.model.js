@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const conn = require('../config/appConn');
+const conn = require('../../config/appConn');
 
 const logSchema = new Schema({
     action: {
