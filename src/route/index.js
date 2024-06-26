@@ -1,5 +1,5 @@
-const roleGroupsRoute = require('../module/roleGroup/roleGroup.route');
-const userRoute = require('../module/user/user.route')
+const roleGroupsRoute = require('../modules/roleGroup/roleGroup.route');
+const userRoute = require('../modules/user/user.route');
 
 const routes = (app) => {
     app.use('/roleGroup/', roleGroupsRoute)

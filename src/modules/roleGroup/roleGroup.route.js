@@ -1,5 +1,5 @@
-// eslint-disable-next-line new-cap
 const router = require('express').Router();
+
 const roleGroupCtrl = require('./roleGroup.controller');
 
 router

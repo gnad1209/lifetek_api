@@ -1,5 +1,3 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
-
 const axios = require('axios');
 const Log = require('./log.model');
 const User = require('./user.model');
@@ -8,9 +6,9 @@ const getToken = require("../../service/getToken");
 const clientId = 'F71GS9fzJUpwfgAyVcb8iBndQWEa';
 const clientSecret = 'cEfVp17FnyLBEIfv5JLs75n2EZA1yAK2KNCU8ffJwaIa';
 const host = `https://identity.lifetek.vn`;
-
 const USER_CREATE_SCOPE = 'internal_user_mgt_create';
 const USED_SCOPE = USER_CREATE_SCOPE;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const createUser = async (req, res) => {
     // Địa chỉ endpoint của API để tạo người dùng

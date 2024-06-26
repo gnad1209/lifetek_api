@@ -1,14 +1,14 @@
-const RoleGroup = require('./roleGroup.model');
-const Client = require('../../model/client.model')
-const httpStatus = require('http-status');
 const lodash = require('lodash');
 const axios = require('axios');
-const qs = require('qs');
-const https = require('https');
-const GetToken = require('../../service/getToken')
-const { getRoleAttributes, getListsRoles } = require('../../service/getApi')
 const dotenv = require('dotenv');
-const { checkClientIam } = require('./roleGroups.service')
+
+const Client = require('../../model/client.shareModel');
+const GetToken = require('../../service/getToken.shareService');
+
+const RoleGroup = require('./roleGroup.model');
+const getApi = require('./roleGroup.service')
+
+
 dotenv.config()
 
 /**
@@ -42,7 +42,7 @@ async function list(req, res, next) {
         //kiểm tra clientId có trong tb clientIam không
         const IamClient = await Client.findOne({ clientId: clientId })
         if (IamClient) {
-          const ClientIam = await checkClientIam(IamClient)
+          const ClientIam = await getApi.checkClientIam(IamClient)
           //kiểm tra iamClientId và iamClientSecret tồn tại không
           if (ClientIam.iamClientId || ClientIam.iamClientSecret) {
             //lấy được accesstoken từ hàm gettoken
@@ -491,7 +491,7 @@ async function iamUserBussinessRole(req, res, next) {
     }
 
     // Lấy các thuộc tính vai trò cho người dùng từ IAM
-    const roleAttributes = await getRoleAttributes(userId, token);
+    const roleAttributes = await getApi.getRoleAttributes(userId, token);
 
     // Nếu không lấy được các thuộc tính vai trò, trả về phản hồi lỗi
     if (!roleAttributes) {
