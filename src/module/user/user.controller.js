@@ -2,6 +2,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const axios = require('axios');
 const Log = require('./log.model');
+const User = require('./user.model');
 const Client = require('../../model/client.model');
 const getToken = require("../../service/getToken");
 const clientId = 'F71GS9fzJUpwfgAyVcb8iBndQWEa';
@@ -30,10 +31,14 @@ const createUser = async (req, res) => {
     if (!iam) {
         return res.json('Missing IAM config for clientId, clientSecret ');
     }
-
+    //Kiểm tra user đã tồn tại hay chưa
+    const userValid = await User.findOne({"data.userName": body.userName});
     // Lấy access token từ IAM
     const accessToken = await getToken(USED_SCOPE, iam.iamClientId, iam.iamClientSecret);
-
+    // Nếu user tồn tại thì return
+    if(userValid) {
+        return res.json("Username is exists")
+    }
     // Tạo đối tượng người dùng với thông tin từ body của request
     const user = {
         "schemas": [],
@@ -49,9 +54,12 @@ const createUser = async (req, res) => {
                 "value": body.value,
                 "type": body.type
             }
-        ]
+        ],
+        "data":{
+            "userName":body.userName,
+        }
     };
-
+    await new User(user).save()
     // Cấu hình cho yêu cầu HTTP POST để tạo người dùng
     const config = {
         method: 'post',
@@ -85,9 +93,7 @@ const createUser = async (req, res) => {
         return;
     } catch (error) {
         // Xử lý lỗi nếu có xảy ra
-        if (error.response && error.response.status === 409) { // HTTP 409 Conflict trùng userName
-            return res.json('User already exists.');
-        } else if (error.response && error.response.status === 403) {
+        if (error.response && error.response.status === 403) {
             return res.json('There is no authority to make the request:', error.response.data);
         } else {
             return res.json('Error creating user:', error.response ? error.response.data : error.message);
