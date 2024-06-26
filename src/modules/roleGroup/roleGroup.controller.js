@@ -8,6 +8,7 @@ const GetToken = require('../../service/getToken.shareService');
 const RoleGroup = require('./roleGroup.model');
 const getApi = require('./roleGroup.service')
 
+
 dotenv.config()
 
 /**
@@ -47,7 +48,7 @@ async function list(req, res, next) {
             //lấy được accesstoken từ hàm gettoken
             const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
             if (access_token) {
-              const data = await getApi.getListsRoles(host, access_token, clientId)
+              const data = await getListsRoles(host, access_token, clientId)
               return res.json({ data: data })
             }
           }
