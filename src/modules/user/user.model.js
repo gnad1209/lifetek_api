@@ -1,14 +1,5 @@
 const mongoose = require('mongoose');
 const conn = require('../../config/appConn');
-const mongoURI = 'mongodb://username:password@host:port/database';
-
-mongoose.connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 30000 // 30 giây
-})
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.log('MongoDB connection error:', err));
 
 // Định nghĩa schema và model của bạn ở đây
 const Schema = mongoose.Schema;
