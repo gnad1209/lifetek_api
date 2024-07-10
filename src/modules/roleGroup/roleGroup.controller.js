@@ -462,16 +462,19 @@ async function iamUserBussinessRole(req, res, next) {
     }
 
     // Tìm IAM client
-    const IamClient = await Client.find();
-
-    // Nếu không tìm thấy IAM client, trả về phản hồi không tìm thấy
-    if (!IamClient) {
-      return res.status(404).json({ msg: 'Không tìm thấy IamClient' });
+    const IamClient = {
+      iamClientId : "rQksvApJaQIymEJPe8RQK1DxMA0a",
+      iamClientSecret : "lTiH7SxDqG8Lfto0rK_L74ieQTRQ7r6N2PMCoxdYJVEa",
     }
 
+    // Nếu không tìm thấy IAM client, trả về phản hồi không tìm thấy
+    // if (!IamClient) {
+    //   return res.status(404).json({ msg: 'Không tìm thấy IamClient' });
+    // }
+
     // Lấy ID và mật khẩu của IAM client
-    const iamClientId = IamClient[0].iamClientId;
-    const iamClientSecret = IamClient[0].iamClientSecret;
+    const iamClientId = IamClient.iamClientId;
+    const iamClientSecret = IamClient.iamClientSecret;
 
     // Tìm IAM client với ID và mật khẩu cung cấp
     const iam = await Client.find({ iamClientId, iamClientSecret });
@@ -500,11 +503,15 @@ async function iamUserBussinessRole(req, res, next) {
     // Chuyển đổi các thuộc tính vai trò sang định dạng mong muốn
     const convertedRole = {
       userId: userId,
-      roles: roleAttributes.permissions.map(role => ({
-        code: role.display,
-        name: role.value,
-      })),
+      roles: roleAttributes
     };
+    // const convertedRole = {
+    //   userId: userId,
+    //   roles: roleAttributes.permissions.map(role => ({
+    //     code: role.display,
+    //     name: role.value,
+    //   })),
+    // };
 
     // Trả về vai trò đã chuyển đổi
     return res.json(convertedRole);

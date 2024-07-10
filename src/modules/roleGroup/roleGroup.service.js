@@ -28,7 +28,7 @@ const getListRoles = async (host, access_token, clientId) => {
 }
 
 const getRoleAttributes = async (roleCode, accessToken) => {
-    const roleEndpoint = `https://identity.lifetek.vn:9443/scim2/v2/Roles/${roleCode}`;
+    const roleEndpoint = `https://192.168.11.102:9443/scim2/v2/Roles/${roleCode}`;
 
     const config = {
         method: 'get',

@@ -2,7 +2,7 @@ const https = require('https');
 const axios = require('axios')
 const qs = require('qs');
 
-const host = `https://identity.lifetek.vn`;
+const host = `https://192.168.11.102`;
 const tokenEndpoint = `${host}:9443/oauth2/token`;
 const agent = new https.Agent({
     rejectUnauthorized: false,
