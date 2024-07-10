@@ -28,7 +28,7 @@ const getListRoles = async (host, access_token, clientId) => {
 }
 
 const getRoleAttributes = async (roleCode, accessToken) => {
-    const roleEndpoint = `https://identity.lifetek.vn:9443/scim2/v2/Roles/${roleCode}`;
+    const roleEndpoint = `https://192.168.11.35:9443/scim2/v2/Roles/${roleCode}`;
 
     const config = {
         method: 'get',
@@ -51,7 +51,6 @@ const getRoleAttributes = async (roleCode, accessToken) => {
 const checkClientIam = (IamClient) => {
     return new Promise(async (resolve, reject) => {
         try {
-            console.log(IamClient)
             const iamClientId = IamClient.iamClientId;
             const iamClientSecret = IamClient.iamClientSecret;
             resolve({ iamClientId: iamClientId, iamClientSecret: iamClientSecret })
@@ -61,37 +60,36 @@ const checkClientIam = (IamClient) => {
     })
 }
 
-function transformData(data, clientid) {
+function transformData(input) {
     const output = {
         res: {
-            data: []
-        }
-    };
-    data.res.data.Resources.forEach(resource => {
-        output.res.data.push({
-            applyEmployeeOrgToModuleOrg: true,
-            _id: resource.id,
-            clientId: clientid,
-            name: resource.displayName,
-            code: resource.displayName.replace(/\s+/g, '_').toUpperCase(),
-            description: "",
+            status: 1,
+            _id: "663d9459a010b93bde437e4a",
+            moduleCode: "IncommingDocument",
+            userId: "62346aa9da4d530f61bbbefd",
             roles: [
                 {
-                    _id: resource.id,
-                    titleFunction: resource.displayName,
-                    codeModleFunction: "YOUR_CODE_MODEL_FUNCTION",
-                    clientId: "clientid",
-                    methods: [
-                        { _id: "method1", name: "GET", allow: false },
-                        { _id: "method2", name: "POST", allow: false },
-                        { _id: "method3", name: "PUT", allow: false },
-                        { _id: "method4", name: "DELETE", allow: false },
-                        { _id: "method5", name: "EXPORT", allow: false },
-                        { _id: "method6", name: "IMPORT", allow: false },
-                        { _id: "method7", name: "VIEWCONFIG", allow: false }
-                    ]
+                    data: [],
+                    _id: "663d9459a010b93bde437e4b",
+                    code: "BUSSINES",
+                    name: "Nghiệp vụ",
+                    type: 1
                 }
             ]
+        }
+    };
+
+    input.data.Resources.forEach((resource, index) => {
+        output.res.roles[0].data.push({
+            _id: `663d9459a010b93bde437e${60 + index}`,
+            name: resource.displayName,
+            data: {
+                view: true,
+                set_command: false,
+                free_role_to_set: false,
+                department_incharge: false,
+                set_complete: true
+            }
         });
     });
 

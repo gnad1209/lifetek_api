@@ -49,7 +49,8 @@ async function list(req, res, next) {
             const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
             if (access_token) {
               const data = await getListRoles(host, access_token, clientId)
-              // const dataChange = await transformData(data, clientId)
+              const dataChange = await transformData(data)
+              // return res.status(200).json({ dataChange })
               return res.status(200).json({ data: data })
             }
           }
@@ -444,7 +445,7 @@ async function iamUserBussinessRole(req, res, next) {
   try {
     // Lấy ID người dùng từ các tham số yêu cầu
     const { userId } = req.params;
-
+    console.log("userId", req.params)
     // Nếu không có ID người dùng, trả về phản hồi lỗi
     if (!userId) {
       return res.status(400).json({ msg: 'Yêu cầu ID người dùng' });
@@ -490,7 +491,6 @@ async function iamUserBussinessRole(req, res, next) {
     if (!token) {
       return res.status(400).json({ msg: 'Không thể lấy token IAM' });
     }
-
     // Lấy các thuộc tính vai trò cho người dùng từ IAM
     const roleAttributes = await getRoleAttributes(userId, token);
 
