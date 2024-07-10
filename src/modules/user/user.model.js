@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const conn = require('../../config/appConn');
+
+// Định nghĩa schema và model của bạn ở đây
 const Schema = mongoose.Schema;
 
 const roleSchema = new Schema({
