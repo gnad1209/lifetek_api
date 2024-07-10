@@ -5,14 +5,14 @@ const Client = require('../../model/client.shareModel');
 const getToken = require("../../service/getToken.shareService");
 const clientId = 'F71GS9fzJUpwfgAyVcb8iBndQWEa';
 const clientSecret = 'cEfVp17FnyLBEIfv5JLs75n2EZA1yAK2KNCU8ffJwaIa';
-const host = `https://identity.lifetek.vn`;
+const host = `https://192.168.11.9`;
 const USER_CREATE_SCOPE = 'internal_user_mgt_create';
 const USED_SCOPE = USER_CREATE_SCOPE;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const createUser = async (req, res) => {
     // Địa chỉ endpoint của API để tạo người dùng
-    const userEndpoint = `${host}:9443/scim2/Users`;
+    const userEndpoint = `${host}:9443/t/carbon.super/console`;
 
     // Lấy thông tin từ body của request
     const { body } = req;
@@ -30,11 +30,11 @@ const createUser = async (req, res) => {
         return res.json('Missing IAM config for clientId, clientSecret ');
     }
     //Kiểm tra user đã tồn tại hay chưa
-    const userValid = await User.findOne({"data.userName": body.userName});
+    const userValid = await User.findOne({ "data.userName": body.userName });
     // Lấy access token từ IAM
     const accessToken = await getToken(USED_SCOPE, iam.iamClientId, iam.iamClientSecret);
     // Nếu user tồn tại thì return
-    if(userValid) {
+    if (userValid) {
         return res.json("Username is exists")
     }
     // Tạo đối tượng người dùng với thông tin từ body của request
@@ -53,8 +53,8 @@ const createUser = async (req, res) => {
                 "type": body.type
             }
         ],
-        "data":{
-            "userName":body.userName,
+        "data": {
+            "userName": body.userName,
         }
     };
     await new User(user).save()
@@ -87,7 +87,6 @@ const createUser = async (req, res) => {
             response: response.data
         });
         await log.save();
-
         return;
     } catch (error) {
         // Xử lý lỗi nếu có xảy ra
