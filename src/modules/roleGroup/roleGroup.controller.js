@@ -1,14 +1,14 @@
 const lodash = require('lodash');
 const axios = require('axios');
-const dotenv = require('dotenv');
 
 const Client = require('../../model/client.shareModel');
 const GetToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getListRoles, getRoleAttributes } = require('./roleGroup.service')
+const { getListRoles, getRoleAttributes, transformData } = require('./roleGroup.service')
 const { checkClientIam } = require('./roleGroup.service')
 
+const dotenv = require('dotenv');
 dotenv.config()
 
 /**
@@ -31,7 +31,8 @@ async function list(req, res, next) {
   try {
     //khai báo respsone data rolegroups
     const { limit = 500, skip = 0, clientId, scope, sort, filter = {}, selector } = req.query;
-    const host = 'https://administrator.lifetek.vn:251/role-groups'
+    // const host = 'https://administrator.lifetek.vn:251/role-groups'
+    const host = 'https://192.168.11.35:9443/scim2/Roles'
     //Nếu ko có clientID trả về lỗi
     if (!clientId) {
       return res.status(400).json({ message: "ClientId required" })
@@ -49,7 +50,8 @@ async function list(req, res, next) {
             const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
             if (access_token) {
               const data = await getListRoles(host, access_token, clientId)
-              return res.json({ data: data })
+              // const dataChange = await transformData(data, clientId)
+              return res.status(200).json({ data: data })
             }
           }
           else {
