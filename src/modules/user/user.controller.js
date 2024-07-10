@@ -5,14 +5,14 @@ const Client = require('../../model/client.shareModel');
 const getToken = require("../../service/getToken.shareService");
 const clientId = 'F71GS9fzJUpwfgAyVcb8iBndQWEa';
 const clientSecret = 'cEfVp17FnyLBEIfv5JLs75n2EZA1yAK2KNCU8ffJwaIa';
-const host = `https://identity.lifetek.vn`;
+const host = `https://192.168.11.9`;
 const USER_CREATE_SCOPE = 'internal_user_mgt_create';
 const USED_SCOPE = USER_CREATE_SCOPE;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 1;
 
 const createUser = async (req, res) => {
     // Địa chỉ endpoint của API để tạo người dùng
-    const userEndpoint = `${host}:9443/scim2/Users`;
+    const userEndpoint = `${host}:9443/t/carbon.super/console`;
 
     // Lấy thông tin từ body của request
     const { body } = req;
@@ -87,7 +87,6 @@ const createUser = async (req, res) => {
             response: response.data
         });
         await log.save();
-
         return;
     } catch (error) {
         // Xử lý lỗi nếu có xảy ra
