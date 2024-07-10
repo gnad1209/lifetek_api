@@ -2,8 +2,10 @@ const https = require('https');
 const axios = require('axios')
 const qs = require('qs');
 
+
 const host = `https://192.168.11.102`;
 const tokenEndpoint = `${host}:9443/oauth2/token`;
+
 const agent = new https.Agent({
     rejectUnauthorized: false,
 });
@@ -13,12 +15,11 @@ const getToken = async (scope, iamClientId, iamClientSecret) => {
         'grant_type': 'client_credentials',
         'scope': scope,
     });
-
     const config = {
         method: 'post',
         url: tokenEndpoint,
         headers: {
-            'Authorization': 'Basic ' + Buffer.from(iamClientId + ':' + iamClientSecret).toString('base64'),
+            'Authorization': 'Basic ' + Buffer.from(`${iamClientId}:${iamClientSecret}`).toString('base64'),
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         data: data,

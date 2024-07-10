@@ -61,8 +61,46 @@ const checkClientIam = (IamClient) => {
     })
 }
 
+function transformData(data, clientid) {
+    const output = {
+        res: {
+            data: []
+        }
+    };
+    data.res.data.Resources.forEach(resource => {
+        output.res.data.push({
+            applyEmployeeOrgToModuleOrg: true,
+            _id: resource.id,
+            clientId: clientid,
+            name: resource.displayName,
+            code: resource.displayName.replace(/\s+/g, '_').toUpperCase(),
+            description: "",
+            roles: [
+                {
+                    _id: resource.id,
+                    titleFunction: resource.displayName,
+                    codeModleFunction: "YOUR_CODE_MODEL_FUNCTION",
+                    clientId: "clientid",
+                    methods: [
+                        { _id: "method1", name: "GET", allow: false },
+                        { _id: "method2", name: "POST", allow: false },
+                        { _id: "method3", name: "PUT", allow: false },
+                        { _id: "method4", name: "DELETE", allow: false },
+                        { _id: "method5", name: "EXPORT", allow: false },
+                        { _id: "method6", name: "IMPORT", allow: false },
+                        { _id: "method7", name: "VIEWCONFIG", allow: false }
+                    ]
+                }
+            ]
+        });
+    });
+
+    return output;
+}
+
 module.exports = {
     getListRoles,
     getRoleAttributes,
-    checkClientIam
+    checkClientIam,
+    transformData
 }
