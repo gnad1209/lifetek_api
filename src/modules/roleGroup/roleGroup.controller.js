@@ -6,8 +6,7 @@ const Client = require('../../model/client.shareModel');
 const GetToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getListRoles, getRoleAttributes } = require('./roleGroup.service')
-const { checkClientIam } = require('./roleGroup.service')
+const { getListRoles, getRoleAttributes ,checkClientIam} = require('./roleGroup.service');
 
 dotenv.config()
 
