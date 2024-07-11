@@ -5,7 +5,7 @@ const Client = require('../../model/client.shareModel');
 const GetToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getListRoles, getRoleAttributes, checkClientIam, transformData } = require('./roleGroup.service');
+const { getListRoles, getRoleAttributes, checkClientIam, convertData, getGroupAttributes } = require('./roleGroup.service');
 
 const dotenv = require('dotenv');
 dotenv.config()
@@ -31,7 +31,8 @@ async function list(req, res, next) {
     //khai báo respsone data rolegroups
     const { limit = 500, skip = 0, clientId, scope, sort, filter = {}, selector } = req.query;
     // const host = 'https://administrator.lifetek.vn:251/role-groups'
-    const host = 'https://192.168.11.35:9443/scim2/Roles'
+    // const host = 'https://192.168.11.35:9443/scim2/Roles'
+    const host = 'https://192.168.11.35:9443/scim2/Groups'
     //Nếu ko có clientID trả về lỗi
     if (!clientId) {
       return res.status(400).json({ message: "ClientId required" })
@@ -48,10 +49,10 @@ async function list(req, res, next) {
             //lấy được accesstoken từ hàm gettoken
             const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
             if (access_token) {
-              const data = await getListRoles(host, access_token, clientId)
-              const dataChange = await transformData(data)
+              const dataList = await getListRoles(host, access_token, clientId)
               // return res.status(200).json({ dataChange })
-              return res.status(200).json({ data: data })
+              // const convertDataRole = convertData(dataList, access_token)
+              return res.status(200).json(dataList)
             }
           }
           else {
@@ -465,55 +466,45 @@ async function iamUserBussinessRole(req, res, next) {
     }
 
     // Tìm IAM client
-    const IamClient = await Client.find();
+    const IamClient = await Client.findOne({ clientId: "Shop" })
 
     // Nếu không tìm thấy IAM client, trả về phản hồi không tìm thấy
     if (!IamClient) {
       return res.status(404).json({ msg: 'Không tìm thấy IamClient' });
     }
 
+    const ClientIam = await checkClientIam(IamClient)
     // Lấy ID và mật khẩu của IAM client
-    const iamClientId = IamClient[0].iamClientId;
-    const iamClientSecret = IamClient[0].iamClientSecret;
-
-    // Tìm IAM client với ID và mật khẩu cung cấp
-    const iam = await Client.find({ iamClientId, iamClientSecret });
-
-    // Nếu không tìm thấy IAM client, trả về phản hồi chỉ ra cấu hình IAM bị thiếu
-    if (!iam) {
-      return res.json('Thiếu cấu hình IAM cho clientId');
+    const iamClientId = IamClient.iamClientId;
+    const iamClientSecret = IamClient.iamClientSecret;
+    if (!ClientIam.iamClientId || !ClientIam.iamClientSecret) {
+      return res.json({ message: "Invalid AIM config for clientId" })
     }
+    // Tìm IAM client với ID và mật khẩu cung cấp
+    // const iam = await Client.find({ iamClientId, iamClientSecret });
 
     // Lấy token cho phạm vi 'internal_role_mgt_view'
-    const token = await GetToken('internal_role_mgt_view', iamClientId, iamClientSecret);
+    const token = await GetToken('internal_group_mgt_view', iamClientId, iamClientSecret);
+    const token_role = await GetToken('internal_role_mgt_view', iamClientId, iamClientSecret);
 
     // Nếu không lấy được token, trả về phản hồi lỗi
     if (!token) {
       return res.status(400).json({ msg: 'Không thể lấy token IAM' });
     }
     // Lấy các thuộc tính vai trò cho người dùng từ IAM
-    const roleAttributes = await getRoleAttributes(userId, token);
-
+    const groupAttributes = await getGroupAttributes(userId, token);
     // Nếu không lấy được các thuộc tính vai trò, trả về phản hồi lỗi
-    if (!roleAttributes) {
+    if (!groupAttributes) {
       return res.status(400).json({ msg: 'Không thể lấy vai trò' });
     }
-
     // Chuyển đổi các thuộc tính vai trò sang định dạng mong muốn
-    const convertedRole = {
-      userId: userId,
-      roles: roleAttributes.permissions.map(role => ({
-        code: role.display,
-        name: role.value,
-      })),
-    };
-
+    const convertDataList = await convertData(userId, groupAttributes, token_role)
     // Trả về vai trò đã chuyển đổi
-    return res.json(convertedRole);
+    return res.json(convertDataList);
   } catch (error) {
     // Ghi log và trả về phản hồi lỗi máy chủ nội bộ trên mọi lỗi
     console.error(error);
-    return res.status(500).json({ msg: 'Lỗi Máy chủ Nội bộ' });
+    return res.status(500).json({ msg: '....' });
   }
 }
 
