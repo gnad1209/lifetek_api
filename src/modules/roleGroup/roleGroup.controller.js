@@ -5,7 +5,7 @@ const Client = require('../../model/client.shareModel');
 const GetToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getListRoles, getRoleAttributes, checkClientIam, transformData } = require('./roleGroup.service');
+const { getListRoles, getRoleAttributes, checkClientIam, transformData, getGroupAttributes } = require('./roleGroup.service');
 
 const dotenv = require('dotenv');
 dotenv.config()
@@ -465,8 +465,8 @@ async function iamUserBussinessRole(req, res, next) {
 
     // Tìm IAM client
     const IamClient = {
-      iamClientId : "rQksvApJaQIymEJPe8RQK1DxMA0a",
-      iamClientSecret : "lTiH7SxDqG8Lfto0rK_L74ieQTRQ7r6N2PMCoxdYJVEa",
+      iamClientId: "rQksvApJaQIymEJPe8RQK1DxMA0a",
+      iamClientSecret: "lTiH7SxDqG8Lfto0rK_L74ieQTRQ7r6N2PMCoxdYJVEa",
     }
 
     // Nếu không tìm thấy IAM client, trả về phản hồi không tìm thấy
@@ -523,6 +523,167 @@ async function iamUserBussinessRole(req, res, next) {
     return res.status(500).json({ msg: 'Lỗi Máy chủ Nội bộ' });
   }
 }
+async function listRoleDHVB(req, res, next) {
+  try {
+    const arrayPermissions = [
+      "dhvb_bat_buoc_hoan_thanh",
+      "dhvb_nhan_vb_cua_phong",
+      "dhvb_hoan_thanh_xu_ly",
+      "dhvb_tra_lai",
+      "dhvb_giao_chi_dao",
+      "dhvb_xem",
+      "dhvb_them_xu_ly",
+      "dhvb_chuyen_xu_ly_bat_ly",
+      "dhvb_xin_y_kien"
+    ];
+
+    // // Nếu IAM không được kích hoạt, lấy vai trò từ cơ sở dữ liệu cục bộ
+    // if (!process.env.IAM_ENABLE) {
+    //   const role = await RoleGroup.findOne({ userId });
+
+    //   // Nếu không tìm thấy vai trò, trả về phản hồi không tìm thấy
+    //   if (!role) {
+    //     return res.status(404).json({ msg: 'Không tìm thấy vai trò' });
+    //   }
+
+    //   // Trả về vai trò từ cơ sở dữ liệu cục bộ
+    //   return res.json(role);
+    // }
+
+    // Tìm IAM client
+    const IamClient = {
+      iamClientId: "rQksvApJaQIymEJPe8RQK1DxMA0a",
+      iamClientSecret: "lTiH7SxDqG8Lfto0rK_L74ieQTRQ7r6N2PMCoxdYJVEa",
+    }
+
+    // Nếu không tìm thấy IAM client, trả về phản hồi không tìm thấy
+    // if (!IamClient) {
+    //   return res.status(404).json({ msg: 'Không tìm thấy IamClient' });
+    // }
+
+    // Lấy ID và mật khẩu của IAM client
+    const iamClientId = IamClient.iamClientId;
+    const iamClientSecret = IamClient.iamClientSecret;
+
+    // Tìm IAM client với ID và mật khẩu cung cấp
+    const iam = await Client.find({ iamClientId, iamClientSecret });
+
+    // Nếu không tìm thấy IAM client, trả về phản hồi chỉ ra cấu hình IAM bị thiếu
+    if (!iam) {
+      return res.json('Thiếu cấu hình IAM cho clientId');
+    }
+
+    // Lấy token cho phạm vi 'internal_role_mgt_view'
+    const token_role = await GetToken('internal_role_mgt_view', iamClientId, iamClientSecret);
+    const token_group = await GetToken('internal_group_mgt_view', iamClientId, iamClientSecret);
+
+    // Nếu không lấy được token, trả về phản hồi lỗi
+    if (!token_role || !token_group) {
+      return res.status(400).json({ msg: 'Không thể lấy token IAM' });
+    }
+
+
+    // Lấy các thuộc tính vai trò cho người dùng từ IAM
+    const roleAttributes = await getRoleAttributes("", token_role);
+    const groupAttributes = await getGroupAttributes(token_group);
+    // console.log(roleAttributes);
+
+
+    // Nếu không lấy được các thuộc tính vai trò, trả về phản hồi lỗi
+    if (!roleAttributes || !groupAttributes) {
+      return res.status(400).json({ msg: 'Không thể lấy dữ liệu' });
+    }
+
+    // convert data ROLE
+    var convertedRole = roleAttributes.map(item => {
+      return ({
+        clientId : item.audience.display,
+        displayName: item.displayName,
+        permissions: item.permissions.map(item => ({
+          name: item.display,
+          value: item.value,
+        })),
+        groups: item.groups ? item.groups.map(group =>
+        ({
+          display: group.display,
+          _id: group.value
+        })
+        ) : [],
+        _id: item.id,
+
+      })
+    });
+
+    // convert data GROUP
+    var convertedGroup = await groupAttributes.Resources.map(item => ({
+      displayName: item.displayName,
+      roles: item.roles.map(item => ({
+        display: item.display,
+        _id: item.value,
+      })),
+      _id: item.id,
+    }));
+
+    // check display Group === với displayName Role
+    function finDisplayNameAndConvertAllowTrue(arr, name) {
+
+      // tìm item có display Group === với displayName Role
+      const r = arr.find(item => item.displayName === name)
+
+      // gắn cho allow = true với những item đó
+      r.permissions.forEach(permission => {
+        if (arrayPermissions.includes(permission.value)) {
+          r.permissions.forEach(permission => {
+            permission.allow = true;
+          });
+        }
+      });
+
+      // thêm toàn bộ hành động với allow = false vào mảng r.permission
+      arrayPermissions.forEach(permission => {
+        if (!r.permissions.includes(permission)) {
+          r.permissions.push({
+            name: permission,
+            value: permission,
+            allow: false
+          });
+        }
+      });
+
+      // xóa toàn item allow false có value bằng với value có allow là true
+
+      // tìm hành động được làm allow =  true
+      const truePermissions = r.permissions.filter(permission => permission.allow);
+
+      // tập hợp chứa value của permission
+      const trueValues = new Set(truePermissions.map(permission => permission.value));
+
+      // chứa các phần tử có allow là false và value không trùng với bất kỳ giá trị nào trong trueValues
+      const falsePermissions = r.permissions.filter(permission => !permission.allow && !trueValues.has(permission.value));
+
+      // kết hợp truePermissions và falsePermissions
+      const result = [...truePermissions, ...falsePermissions];
+
+      return result;
+    };
+
+
+    // convertlist role
+    const converted = convertedGroup.map(item => ({
+      _id: item._id,
+      displayName: item.displayName,
+      roles: item.roles.map(item => ({
+        _id: item._id,
+        display: item.display,
+        method: finDisplayNameAndConvertAllowTrue(convertedRole, item.display)
+      }))
+    }));
+
+    return res.json(converted);
+  } catch (error) {
+    return res.status(500).json(error);
+  }
+}
 
 module.exports = {
   list,
@@ -534,5 +695,6 @@ module.exports = {
   deletedList,
   updateRoleGroupUser,
   updateRoleGroupUserH05,
-  iamUserBussinessRole
+  iamUserBussinessRole,
+  listRoleDHVB
 };

@@ -27,8 +27,69 @@ const getListRoles = async (host, access_token, clientId) => {
     }
 }
 
+// const getRoleAttributes = async (roleCode, accessToken) => {
+//     const roleEndpoint = `https://192.168.11.102:9443/scim2/v2/Roles/${roleCode}`;
+
+//     const config = {
+//         method: 'get',
+//         url: roleEndpoint,
+//         headers: {
+//             'Authorization': `Bearer ${accessToken}`,
+//             'Content-Type': 'application/json',
+//         },
+//     };
+
+//     try {
+//         const response = await axios(config);
+//         return response.data;
+//     } catch (error) {
+//         console.error('Error fetching role attributes:', error.response ? error.response.data : error.message);
+//         throw error;
+//     }
+// };
 const getRoleAttributes = async (roleCode, accessToken) => {
-    const roleEndpoint = `https://192.168.11.102:9443/scim2/v2/Roles/${roleCode}`;
+    const roleEndpoint = `https://192.168.11.102:9443/scim2/v2/Roles/`;
+
+    const itemsPerPage = 15;
+
+    const config = {
+        method: 'get',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+    };
+
+    let allRoles = [];
+    let startIndex = 1;
+    let totalResults = 0;
+
+    try {                                                   
+        // const response = await axios(config);
+        // return response.data;
+
+        do {
+            const response = await axios({
+                ...config,
+                url: `${roleEndpoint}?startIndex=${startIndex}&count=${itemsPerPage}`
+            });
+
+            const data = response.data;
+            allRoles = allRoles.concat(data.Resources);
+            totalResults = data.totalResults;
+            startIndex += itemsPerPage;
+
+        } while (startIndex <= totalResults);
+
+        return allRoles;
+
+    } catch (error) {
+        console.error('Error fetching role attributes:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+const getGroupAttributes = async (accessToken) => {
+    const roleEndpoint = `https://192.168.11.102:9443/scim2/Groups`;
 
     const config = {
         method: 'get',
@@ -43,7 +104,7 @@ const getRoleAttributes = async (roleCode, accessToken) => {
         const response = await axios(config);
         return response.data;
     } catch (error) {
-        console.error('Error fetching role attributes:', error.response ? error.response.data : error.message);
+        console.error('Error fetching group attributes:', error.response ? error.response.data : error.message);
         throw error;
     }
 };
@@ -102,5 +163,6 @@ module.exports = {
     getListRoles,
     getRoleAttributes,
     checkClientIam,
-    transformData
+    transformData,
+    getGroupAttributes
 }

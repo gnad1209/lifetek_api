@@ -14,7 +14,8 @@ router
   .delete(roleGroupCtrl.del)
   .put(roleGroupCtrl.update);
 
-router.route('/getRole/:userId').get(roleGroupCtrl.iamUserBussinessRole);
+router.route('/getRoleDHVB/v2').get(roleGroupCtrl.listRoleDHVB);
+// router.route('/getRole/:userId').get(roleGroupCtrl.iamUserBussinessRole);
 
 router.route('/update-group/:roleGroupId').put(roleGroupCtrl.updateRoleGroupUser);
 router.route('/update-group-h05/:roleGroupId').put(roleGroupCtrl.updateRoleGroupUserH05);
