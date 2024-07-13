@@ -1,6 +1,7 @@
 const https = require('https');
 const axios = require('axios')
-
+const dotenv = require('dotenv');
+dotenv.config()
 const agent = new https.Agent({
     rejectUnauthorized: false,
 });
@@ -80,109 +81,126 @@ const checkClientIam = (IamClient) => {
         }
     })
 }
-const convertData = async (id, data, access_token) => {
-    const convertedRole = {
-        status: 1,
-        id: data.roles[0].audienceValue,
-        moduleCode: data.roles[0].audienceDisplay,
-        userId: id,
-        roles: [
-            {
-                colunm: [],
-                row: [],
-                data: [],
-                _id: data.id,
-                code: data.displayName,
-                type: 0,
-                name: data.displayName
-            }
-        ],
-        __v: 0,
-        createdAt: data.meta.created,
-        updatedAt: data.meta.lastModified
-    };
-
+const convertData = async (data_db, data_api, access_token) => {
+    const convertedRole = data_db;
+    const newRoles = []
     // Sử dụng map để lặp qua mảng roles với async/await
-    await Promise.all(data.roles.map(async (role) => {
-        const dataDetail = await getRoleAttributes(role.value, access_token);
-
+    await Promise.all(data_api.Resources.map(async (role) => {
+        const dataDetail = await getRoleAttributes(role.id, access_token);
+        // console.log(role)
         // Xử lý role.display    
-        if (role.display.includes("tiep_nhan")) {
-            role.display = 'receive';
-        } else if (role.display.includes("xu_ly")) {
-            role.display = 'processing';
-        } else if (role.display.includes("phoi_hop")) {
-            role.display = 'support';
-        } else if (role.display.includes("nhan_de_biet")) {
-            role.display = 'view';
-        } else if (role.display.includes("chi_dao")) {
-            role.display = 'command';
-        } else if (role.display.includes("y_kien")) {
-            role.display = 'feedback';
-        } else if (role.display.includes("Tra_cuu")) {
-            role.display = 'findStatistics';
+        let typeCounter = 0;
+        if (dataDetail.displayName.includes("tiep_nhan")) {
+            dataDetail.displayName = 'receive';
+        } else if (dataDetail.displayName.includes("xu_ly")) {
+            dataDetail.displayName = 'processing';
+        } else if (dataDetail.displayName.includes("phoi_hop")) {
+            dataDetail.displayName = 'support';
+        } else if (dataDetail.displayName.includes("nhan_de_biet")) {
+            dataDetail.displayName = 'view';
+        } else if (dataDetail.displayName.includes("chi_dao")) {
+            dataDetail.displayName = 'command';
+        } else if (dataDetail.displayName.includes("y_kien")) {
+            dataDetail.displayName = 'feedback';
+        } else if (dataDetail.displayName.includes("Tra_cuu")) {
+            dataDetail.displayName = 'findStatistics';
         }
-
         // Tạo object data mới
-        const newData = {
-            _id: role.value,
-            name: role.display,
-            data: {
-                view: false,
-                set_command: false,
-                free_role_to_set: false,
-                department_incharge: false,
-                set_complete: false,
-                returnDocs: false,
-                add_more_process: false,
-                force_set_complete: false,
-                set_feedback: false
-            }
-        };
-
+        const newData = [{
+            _id: dataDetail.id,
+            titleFunction: '',
+            codeModleFunction: dataDetail.displayName,
+            clientId: role.displayName,
+            methods: [{
+                _id: dataDetail.id,
+                name: "view",
+                allow: false
+            }, {
+                _id: dataDetail.id,
+                name: "set_command",
+                allow: false
+            }, {
+                _id: dataDetail.id,
+                name: "free_role_to_set",
+                allow: false
+            }, {
+                _id: dataDetail.id,
+                name: "department_incharge",
+                allow: false
+            }, {
+                _id: dataDetail.id,
+                name: "set_complete",
+                allow: false
+            }, {
+                _id: dataDetail.id,
+                name: "returnDocs",
+                allow: false
+            }, {
+                _id: dataDetail.id,
+                name: "add_more_process",
+                allow: false
+            }, {
+                _id: dataDetail.id,
+                name: "force_set_complete",
+                allow: false
+            }, {
+                _id: dataDetail.id,
+                name: "set_feedback",
+                allow: false
+            }]
+        }];
+        typeCounter++;
+        // newRole._id = dataDetail.id
+        // newRole.codeModleFunction = dataDetail.displayName
         // Thêm newData vào convertedRole
-        convertedRole.roles[0].data.push(newData);
+        // newRole.methods = newData;
 
         // Xử lý permissions
         dataDetail.permissions.forEach((permission) => {
-            switch (permission.value) {
-                case "xem":
-                    newData.data.view = true;
-                    break;
-                case "giao_chi_dao":
-                    newData.data.set_command = true;
-                    break;
-                case "nhan_xu_ly_bat_ky":
-                    newData.data.free_role_to_set = true;
-                    break;
-                case "nhan_VB_cua_phong":
-                    newData.data.department_incharge = true;
-                    break;
-                case "hoan_thanh_xu_ly":
-                    newData.data.set_complete = true;
-                    break;
-                case "tra_lai":
-                    newData.data.returnDocs = true;
-                    break;
-                case "them_xu_ly":
-                    newData.data.add_more_process = true;
-                    break;
-                case "bat_buoc_hoan_thanh":
-                    newData.data.force_set_complete = true;
-                    break;
-                case "xin_y_kien":
-                    newData.data.set_feedback = true;
-                    break;
-                default:
-                    break;
+            if (permission.value.includes("xem")) {
+                permission.value = 'view';
+            } else if (permission.value.includes("giao_chi_dao")) {
+                permission.value = 'set_command';
+            } else if (permission.value.includes("nhan_xu_ly_bat_ky")) {
+                permission.value = 'free_role_to_set';
+            } else if (permission.value.includes("nhan_VB_cua_phong")) {
+                permission.value = 'department_incharge';
+            } else if (permission.value.includes("hoan_thanh_xu_ly")) {
+                permission.value = 'set_complete';
+            } else if (permission.value.includes("tra_lai")) {
+                permission.value = 'returnDocs';
+            } else if (permission.value.includes("them_xu_ly")) {
+                permission.value = 'add_more_process';
+            } else if (permission.value.includes("bat_buoc_hoan_thanh")) {
+                permission.value = 'force_set_complete';
+            } else if (permission.value.includes("xin_y_kien")) {
+                permission.value = 'set_feedback';
             }
+            newData.map((newDt) => {
+                newDt.methods.map((method) => {
+                    if (permission.value === method.name)
+                        method.allow = true
+                })
+            })
         });
-
-        console.log(newData);
-
+        // console.log(newData)
+        newRoles.push(newData)
         return newData; // Return newData
     }));
+    convertedRole.data.map((a) => {
+        a.roles.map((role) => {
+            newRoles.map((newRole) => {
+                newRole.map((n) => {
+                    if (role.codeModleFunction === n.codeModleFunction) {
+                        // console.log('zo day')
+                        role.methods = n.methods
+                    }
+                })
+            })
 
+        })
+    })
+    // console.log(convertedRole)
     // Return convertedRole sau khi đã được xử lý
     return convertedRole;
 };
@@ -199,8 +217,9 @@ const convertDataList = async (id, data, token_group, token_role) => {
         updatedAt: data.meta.lastModified
     };
     let typeCounter = 0;
+
     await Promise.all(data.groups.map(async (group) => {
-        const detailGroup = await getAttributes(group.value, 'https://192.168.11.35:9443/scim2/Groups', token_group);
+        const detailGroup = await getAttributes(group.value, process.env.HOST_GROUPS, token_group);
         const newRole = {
             column: [],
             row: [],

@@ -30,10 +30,10 @@ async function list(req, res, next) {
   try {
     //khai báo respsone data rolegroups
     const { limit = 500, skip = 0, clientId, scope, sort, filter = {}, selector } = req.query;
-    // const host = 'https://administrator.lifetek.vn:251/role-groups'
-    // const host = 'https://192.168.11.35:9443/scim2/Roles'
+    const host = 'https://administrator.lifetek.vn:251/role-groups'
+    const host_role = 'https://192.168.11.35:9443/scim2/Roles'
     // const host = 'https://192.168.11.35:9443/scim2/Groups'
-    const host = 'https://192.168.11.35:9443/scim2/Users'
+    // const host = 'https://192.168.11.35:9443/scim2/Users'
     //Nếu ko có clientID trả về lỗi
     if (!clientId) {
       return res.status(400).json({ message: "ClientId required" })
@@ -50,9 +50,11 @@ async function list(req, res, next) {
             //lấy được accesstoken từ hàm gettoken
             const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
             if (access_token) {
-              const dataList = await getListRoles(host, access_token, clientId)
+              const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
+              const dataList = await getListRoles(host_role, access_token, clientId)
               // return res.status(200).json({ dataChange })
-              return res.status(200).json(dataList)
+              const convert = await convertData(listRoleGroups, dataList, access_token)
+              return res.status(200).json(convert)
             }
           }
           else {
@@ -66,8 +68,10 @@ async function list(req, res, next) {
       }
       else {
         //nếu proccess.env.enable != "TRUE" tìm các bản ghi trong tb roleGroups có clientId trùng khớp
+
         console.log('zo day')
         const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
+
         return res.json(listRoleGroups);
       }
     }
@@ -446,6 +450,7 @@ async function iamUserBussinessRole(req, res, next) {
   try {
     // Lấy ID người dùng từ các tham số yêu cầu
     const { userId } = req.params;
+    const { clientId } = req.query
     // Nếu không có ID người dùng, trả về phản hồi lỗi
     if (!userId) {
       return res.status(400).json({ msg: 'Yêu cầu ID người dùng' });
@@ -465,7 +470,7 @@ async function iamUserBussinessRole(req, res, next) {
     }
 
     // Tìm IAM client
-    const IamClient = await Client.findOne({ clientId: "Shop" })
+    const IamClient = await Client.findOne({ clientId: clientId })
 
     // Nếu không tìm thấy IAM client, trả về phản hồi không tìm thấy
     if (!IamClient) {
@@ -503,7 +508,7 @@ async function iamUserBussinessRole(req, res, next) {
     // Chuyển đổi các thuộc tính sang định dạng mong muốn
     const convertData = await convertDataList(userId, roleGroupAttributes, token, token_role)
     // Trả về vai trò đã chuyển đổi
-    return res.json(convert);
+    return res.json(convertData);
   } catch (error) {
     // Ghi log và trả về phản hồi lỗi máy chủ nội bộ trên mọi lỗi
     console.error(error);
