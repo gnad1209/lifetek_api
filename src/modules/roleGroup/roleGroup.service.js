@@ -210,12 +210,15 @@ const convertData = async (data_db, data_api, access_token) => {
         newRoles.push(newData)
         return newData; // Return newData
     }));
-    convertedRole.data.map((a) => {
-        a.roles.map((role) => {
-            newRoles.map((newRole) => {
-                newRole.map((n) => {
-                    if (role.codeModleFunction === n.codeModleFunction) {
+    convertedRole.data.forEach((a) => {
+        a.roles.forEach((role) => {
+            newRoles.forEach((newRole) => {
+                // console.log(newRole)
+                newRole.forEach((n) => {
+                    //DK1: ROLE DK2: GROUPS
+                    if (n.codeModleFunction.includes(role.codeModleFunction) && n.codeModleFunction.includes(a.code) && n.codeModleFunction[0] === a.code[0]) {
                         // console.log('zo day')
+                        // console.log(n)
                         role.methods = n.methods
                     }
                 })
