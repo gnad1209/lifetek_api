@@ -30,8 +30,8 @@ async function list(req, res, next) {
   try {
     //khai báo respsone data rolegroups
     const { limit = 500, skip = 0, clientId, scope, sort, filter = {}, selector } = req.query;
-    const host = 'https://administrator.lifetek.vn:251/role-groups'
-    const host_role = 'https://192.168.11.35:9443/scim2/Roles'
+    // const host = 'https://administrator.lifetek.vn:251/role-groups'
+    const host_role = process.env.HOST_ROLES
     // const host = 'https://192.168.11.35:9443/scim2/Groups'
     // const host = 'https://192.168.11.35:9443/scim2/Users'
     //Nếu ko có clientID trả về lỗi

@@ -88,26 +88,36 @@ const convertData = async (data_db, data_api, access_token) => {
     await Promise.all(data_api.Resources.map(async (role) => {
         const dataDetail = await getRoleAttributes(role.id, access_token);
         // console.log(role)
-        // Xử lý role.display    
         let typeCounter = 0;
-        if (dataDetail.displayName.includes("tiep_nhan")) {
-            dataDetail.displayName = 'receive';
-        } else if (dataDetail.displayName.includes("xu_ly")) {
-            dataDetail.displayName = 'processing';
-        } else if (dataDetail.displayName.includes("phoi_hop")) {
-            dataDetail.displayName = 'support';
-        } else if (dataDetail.displayName.includes("nhan_de_biet")) {
-            dataDetail.displayName = 'view';
-        } else if (dataDetail.displayName.includes("chi_dao")) {
-            dataDetail.displayName = 'command';
-        } else if (dataDetail.displayName.includes("y_kien")) {
-            dataDetail.displayName = 'feedback';
-        } else if (dataDetail.displayName.includes("Tra_cuu")) {
-            dataDetail.displayName = 'findStatistics';
+        switch (true) {
+            case role.displayName.includes("tiep_nhan"):
+                role.displayName = 'receive';
+                break;
+            case role.displayName.includes("xu_ly"):
+                role.displayName = 'processing';
+                break;
+            case role.displayName.includes("phoi_hop"):
+                role.displayName = 'support';
+                break;
+            case role.displayName.includes("nhan_de_biet"):
+                role.displayName = 'view';
+                break;
+            case role.displayName.includes("chi_dao"):
+                role.displayName = 'command';
+                break;
+            case role.displayName.includes("y_kien"):
+                role.displayName = 'feedback';
+                break;
+            case role.displayName.includes("Tra_cuu"):
+                role.displayName = 'findStatistics';
+                break;
+            default:
+                // Nếu không khớp với bất kỳ trường hợp nào
+                break;
         }
         // Tạo object data mới
         const newData = [{
-            _id: dataDetail.id,
+            _id: role.id,
             titleFunction: '',
             codeModleFunction: dataDetail.displayName,
             clientId: role.displayName,
@@ -157,28 +167,41 @@ const convertData = async (data_db, data_api, access_token) => {
 
         // Xử lý permissions
         dataDetail.permissions.forEach((permission) => {
-            if (permission.value.includes("xem")) {
-                permission.value = 'view';
-            } else if (permission.value.includes("giao_chi_dao")) {
-                permission.value = 'set_command';
-            } else if (permission.value.includes("nhan_xu_ly_bat_ky")) {
-                permission.value = 'free_role_to_set';
-            } else if (permission.value.includes("nhan_VB_cua_phong")) {
-                permission.value = 'department_incharge';
-            } else if (permission.value.includes("hoan_thanh_xu_ly")) {
-                permission.value = 'set_complete';
-            } else if (permission.value.includes("tra_lai")) {
-                permission.value = 'returnDocs';
-            } else if (permission.value.includes("them_xu_ly")) {
-                permission.value = 'add_more_process';
-            } else if (permission.value.includes("bat_buoc_hoan_thanh")) {
-                permission.value = 'force_set_complete';
-            } else if (permission.value.includes("xin_y_kien")) {
-                permission.value = 'set_feedback';
+            switch (true) {
+                case permission.value.includes("xem"):
+                    permission.value = 'view';
+                    break;
+                case permission.value.includes("giao_chi_dao"):
+                    permission.value = 'set_command';
+                    break;
+                case permission.value.includes("chuyen_xu_li_bat_ky"):
+                    permission.value = 'free_role_to_set';
+                    break;
+                case permission.value.includes("nhan_vb_cua_phong"):
+                    permission.value = 'department_incharge';
+                    break;
+                case permission.value.includes("hoan_thanh_xu_ly"):
+                    permission.value = 'set_complete';
+                    break;
+                case permission.value.includes("tra_lai"):
+                    permission.value = 'returnDocs';
+                    break;
+                case permission.value.includes("them_xu_ly"):
+                    permission.value = 'add_more_process';
+                    break;
+                case permission.value.includes("bat_buoc_hoan_thanh"):
+                    permission.value = 'force_set_complete';
+                    break;
+                case permission.value.includes("xin_y_kien"):
+                    permission.value = 'set_feedback';
+                    break;
+                default:
+                    // Nếu không khớp với bất kỳ trường hợp nào
+                    break;
             }
-            newData.map((newDt) => {
-                newDt.methods.map((method) => {
-                    if (permission.value === method.name)
+            newData.map((n) => {
+                n.methods.map((method) => {
+                    if (method.name === permission.value)
                         method.allow = true
                 })
             })
