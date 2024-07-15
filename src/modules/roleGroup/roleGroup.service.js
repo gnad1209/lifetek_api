@@ -28,7 +28,7 @@ const getListRoles = async (host, access_token, clientId) => {
 }
 
 const getGroupAttributes = async (roleCode, accessToken) => {
-    const roleEndpoint = `https://192.168.11.35:9443/scim2/Groups/${roleCode}`;
+    const roleEndpoint = `https://192.168.11.9:9443/scim2/Groups/${roleCode}`;
 
     const config = {
         method: 'get',
@@ -49,7 +49,7 @@ const getGroupAttributes = async (roleCode, accessToken) => {
 };
 
 const getRoleAttributes = async (roleCode, accessToken) => {
-    const roleEndpoint = `https://192.168.11.35:9443/scim2/v2/Roles/${roleCode}`;
+    const roleEndpoint = `https://192.168.11.9:9443/scim2/v2/Roles/${roleCode}`;
 
     const config = {
         method: 'get',
@@ -80,111 +80,88 @@ const checkClientIam = (IamClient) => {
         }
     })
 }
-const convertData = async (id, data, access_token) => {
-    const convertedRole = {
-        //   status: 1,
-        // id: "...",
-        // moduleCode: "...",
-        userId: id,
-        roles: [
-            {
-                data: [],
-                _id: data.id,
-                code: data.displayName,
-                type: 0,
-                name: data.displayName
-            }
-        ]
+const convertDataList = async (roleGroup, data, access_token) => {
+    // Sử dụng Promise.all để chờ tất cả các promise hoàn thành và tạo ra mảng các đối tượng với cấu trúc cần thiết từ roleGroup.data
+    const infoData = await Promise.all(roleGroup.data.map(async (item) => {
+        return {
+            applyEmployeeOrgToModuleOrg: item.applyEmployeeOrgToModuleOrg,
+            _id: item._id,
+            name: item.name,
+            clientId: item.clientId,
+            code: item.code,
+            descriptions: "",
+            roles: [] // Khởi tạo mảng rỗng để lưu các roles
+        };
+    }));
+
+    // Khởi tạo đối tượng convertedListRole với mảng data chứa tất cả các phần tử từ infoData
+    const convertedListRole = {
+        data: infoData
     };
 
-    // Sử dụng map để lặp qua mảng roles với async/await
-    await Promise.all(data.roles.map(async (role) => {
-        const dataDetail = await getRoleAttributes(role.value, access_token);
-
-        // Xử lý role.display
-        if (role.display.includes("tiep_nhan")) {
-            role.display = 'receive';
-        } else if (role.display.includes("xu_ly")) {
-            role.display = 'processing';
-        } else if (role.display.includes("phoi_hop")) {
-            role.display = 'support';
-        } else if (role.display.includes("nhan_de_biet")) {
-            role.display = 'view';
-        } else if (role.display.includes("chi_dao")) {
-            role.display = 'command';
-        } else if (role.display.includes("y_kien")) {
-            role.display = 'feedback';
-        } else if (role.display.includes("Tra_cuu")) {
-            role.display = 'findStatistics';
-        }
-
-        // Tạo object data mới
-        const newData = {
-            _id: role.value,
-            name: role.display,
-            data: {
-                view: false,
-                set_command: false,
-                free_role_to_set: false,
-                department_incharge: false,
-                set_complete: false,
-                returnDocs: false,
-                add_more_process: false,
-                force_set_complete: false,
-                set_feedback: false
-            }
+    // Sử dụng Promise.all để xử lý các yêu cầu bất đồng bộ cho từng resource trong data.Resources
+    await Promise.all(data.Resources.map(async (resource) => {
+        const dataDetail = await getRoleAttributes(resource.id, access_token);
+        console.log(dataDetail);
+        console.log(convertedListRole.data);
+        // Ánh xạ các giá trị quyền từ tiếng Việt sang tiếng Anh
+        const permissionMap = {
+            "xem": "view",
+            "nhanvbcuaphong": "department_incharge",
+            "tralai": "returnDocs",
+            "batbuochoanthanh": "force_set_complete",
+            "giaochidao": "set_command",
+            "xinykien": "set_feedback",
+            "hoanthanhxuly": "set_complete",
+            "themxuly": "add_more_process",
+            "chuyenxulybatky": "free_role_to_set"
         };
 
-        // Thêm newData vào convertedRole
-        convertedRole.roles[0].data.push(newData);
-
-        // Xử lý permissions
-        dataDetail.permissions.forEach((permission) => {
-            switch (permission.value) {
-                case "xem":
-                    newData.data.view = true;
+        // Thay đổi giá trị quyền dựa trên permissionMap
+        dataDetail.permissions.forEach(permission => {
+            for (let key in permissionMap) {
+                if (permission.value.includes(key)) {
+                    permission.value = permissionMap[key];
                     break;
-                case "giao_chi_dao":
-                    newData.data.set_command = true;
-                    break;
-                case "nhan_xu_ly_bat_ky":
-                    newData.data.free_role_to_set = true;
-                    break;
-                case "nhan_VB_cua_phong":
-                    newData.data.department_incharge = true;
-                    break;
-                case "hoan_thanh_xu_ly":
-                    newData.data.set_complete = true;
-                    break;
-                case "tra_lai":
-                    newData.data.returnDocs = true;
-                    break;
-                case "them_xu_ly":
-                    newData.data.add_more_process = true;
-                    break;
-                case "bat_buoc_hoan_thanh":
-                    newData.data.force_set_complete = true;
-                    break;
-                case "xin_y_kien":
-                    newData.data.set_feedback = true;
-                    break;
-                default:
-                    break;
+                }
             }
         });
 
-        console.log(newData); // Kiểm tra newData đã được thêm vào convertedRole
+        // Tạo mảng methods từ các quyền đã được ánh xạ
+        const methods = dataDetail.permissions.map(permission => ({
+            _id: resource.id,
+            name: permission.display,
+            allow: permission.value ? true : false
+        }));
 
-        return newData; // Return newData
+        // Tạo một đối tượng role mới
+        const newRole = {
+            _id: dataDetail.id,
+            titleFunction: dataDetail.displayName,
+            codeModuleFunction: "",
+            clientId: "DHVB",
+            methods: methods
+        };
+
+        // Tìm phần tử trong convertedListRole.data với clientId tương ứng
+        const targetData = convertedListRole.data.find(item => item.clientId === dataDetail.audience.display);
+        // Nếu tìm thấy phần tử tương ứng, thêm newRole vào roles
+        if (targetData) {
+            targetData.roles.push(newRole);
+        }
     }));
 
-    // Return convertedRole sau khi đã được xử lý
-    return convertedRole;
+    // Trả về đối tượng convertedListRole sau khi đã xử lý xong
+    return convertedListRole;
 };
+
+
+
+
 module.exports = {
     getListRoles,
     getRoleAttributes,
     checkClientIam,
-    convertData,
+    convertDataList,
     getGroupAttributes
 }
