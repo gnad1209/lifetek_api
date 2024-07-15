@@ -81,81 +81,87 @@ const checkClientIam = (IamClient) => {
     })
 }
 const convertDataList = async (roleGroup, data, access_token) => {
-    // Sử dụng Promise.all để chờ tất cả các promise hoàn thành và tạo ra mảng các đối tượng với cấu trúc cần thiết từ roleGroup.data
-    const infoData = await Promise.all(roleGroup.data.map(async (item) => {
-        return {
-            applyEmployeeOrgToModuleOrg: item.applyEmployeeOrgToModuleOrg,
-            _id: item._id,
-            name: item.name,
-            clientId: item.clientId,
-            code: item.code,
-            descriptions: "",
-            roles: [] // Khởi tạo mảng rỗng để lưu các roles
-        };
-    }));
-
-    // Khởi tạo đối tượng convertedListRole với mảng data chứa tất cả các phần tử từ infoData
-    const convertedListRole = {
-        data: infoData
-    };
-
-    // Sử dụng Promise.all để xử lý các yêu cầu bất đồng bộ cho từng resource trong data.Resources
-    await Promise.all(data.Resources.map(async (resource) => {
-        const dataDetail = await getRoleAttributes(resource.id, access_token);
-        console.log(dataDetail);
-        console.log(convertedListRole.data);
-        // Ánh xạ các giá trị quyền từ tiếng Việt sang tiếng Anh
-        const permissionMap = {
-            "xem": "view",
-            "nhanvbcuaphong": "department_incharge",
-            "tralai": "returnDocs",
-            "batbuochoanthanh": "force_set_complete",
-            "giaochidao": "set_command",
-            "xinykien": "set_feedback",
-            "hoanthanhxuly": "set_complete",
-            "themxuly": "add_more_process",
-            "chuyenxulybatky": "free_role_to_set"
-        };
-
-        // Thay đổi giá trị quyền dựa trên permissionMap
-        dataDetail.permissions.forEach(permission => {
-            for (let key in permissionMap) {
-                if (permission.value.includes(key)) {
-                    permission.value = permissionMap[key];
-                    break;
-                }
-            }
-        });
-
-        // Tạo mảng methods từ các quyền đã được ánh xạ
-        const methods = dataDetail.permissions.map(permission => ({
-            _id: resource.id,
-            name: permission.display,
-            allow: permission.value ? true : false
+    try {
+        // Sử dụng Promise.all để chờ tất cả các promise hoàn thành và tạo ra mảng các đối tượng với cấu trúc cần thiết từ roleGroup.data
+        const infoData = await Promise.all(roleGroup.data.map(async (item) => {
+            return {
+                applyEmployeeOrgToModuleOrg: item.applyEmployeeOrgToModuleOrg,
+                _id: item._id,
+                name: item.name,
+                clientId: item.clientId,
+                code: item.code,
+                descriptions: "",
+                roles: [] // Khởi tạo mảng rỗng để lưu các roles
+            };
         }));
 
-        // Tạo một đối tượng role mới
-        const newRole = {
-            _id: dataDetail.id,
-            titleFunction: dataDetail.displayName,
-            codeModuleFunction: "",
-            clientId: "DHVB",
-            methods: methods
+        // Khởi tạo đối tượng convertedListRole với mảng data chứa tất cả các phần tử từ infoData
+        const convertedListRole = {
+            data: infoData
         };
 
-        // Tìm phần tử trong convertedListRole.data với clientId tương ứng
-        const targetData = convertedListRole.data.find(item => item.clientId === dataDetail.audience.display);
-        // Nếu tìm thấy phần tử tương ứng, thêm newRole vào roles
-        if (targetData) {
-            targetData.roles.push(newRole);
-        }
-    }));
+        // Sử dụng Promise.all để xử lý các yêu cầu bất đồng bộ cho từng resource trong data.Resources
+        await Promise.all(data.Resources.map(async (resource) => {
+            try {
+                const dataDetail = await getRoleAttributes(resource.id, access_token);
 
-    // Trả về đối tượng convertedListRole sau khi đã xử lý xong
-    return convertedListRole;
+                // Ánh xạ các giá trị quyền 
+                const permissionMap = {
+                    "xem": "view",
+                    "nhanvbcuaphong": "department_incharge",
+                    "tralai": "returnDocs",
+                    "batbuochoanthanh": "force_set_complete",
+                    "giaochidao": "set_command",
+                    "xinykien": "set_feedback",
+                    "hoanthanhxuly": "set_complete",
+                    "themxuly": "add_more_process",
+                    "chuyenxulybatky": "free_role_to_set"
+                };
+
+                // Thay đổi giá trị quyền dựa trên permissionMap
+                dataDetail.permissions.forEach(permission => {
+                    for (let key in permissionMap) {
+                        if (permission.value.includes(key)) {
+                            permission.value = permissionMap[key];
+                            break;
+                        }
+                    }
+                });
+
+                // Tạo mảng methods từ các quyền đã được ánh xạ
+                const methods = dataDetail.permissions.map(permission => ({
+                    _id: resource.id,
+                    name: permission.display,
+                    allow: permission.value ? true : false
+                }));
+
+                // Tạo một đối tượng role mới
+                const newRole = {
+                    _id: dataDetail.id,
+                    titleFunction: dataDetail.displayName,
+                    codeModuleFunction: "",
+                    clientId: "DHVB",
+                    methods: methods
+                };
+
+                // Tìm phần tử trong convertedListRole.data với clientId tương ứng
+                const targetData = convertedListRole.data.find(item => item.clientId === dataDetail.audience.display);
+                // Nếu tìm thấy phần tử tương ứng, thêm newRole vào roles
+                if (targetData) {
+                    targetData.roles.push(newRole);
+                }
+            } catch (resourceError) {
+                console.error(`Error processing resource with id ${resource.id}:`, resourceError);
+            }
+        }));
+
+        // Trả về đối tượng convertedListRole sau khi đã xử lý xong
+        return convertedListRole;
+    } catch (error) {
+        console.error('Error converting data list:', error);
+        throw error; // Nếu muốn ném lỗi ra ngoài để xử lý tiếp, nếu không có thể bỏ dòng này.
+    }
 };
-
-
 
 
 module.exports = {
