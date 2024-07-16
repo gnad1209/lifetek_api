@@ -1,12 +1,15 @@
 const https = require('https');
 const axios = require('axios')
+const fs = require('fs');
+const util = require('util');
+const readFile = util.promisify(fs.readFile);
 const dotenv = require('dotenv');
 dotenv.config()
 const agent = new https.Agent({
     rejectUnauthorized: false,
 });
 
-const getListRoles = async (host, access_token, clientId) => {
+const getList = async (host, access_token, clientId) => {
     const userEndpoint = `${host}?clientId=${clientId}`;
     const configRole = {
         method: 'get',
@@ -49,27 +52,6 @@ const getAttributes = async (userId, host, accessToken) => {
     }
 };
 
-const getRoleAttributes = async (roleCode, accessToken) => {
-    const roleEndpoint = `https://192.168.11.35:9443/scim2/v2/Roles/${roleCode}`;
-
-    const config = {
-        method: 'get',
-        url: roleEndpoint,
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-        },
-    };
-
-    try {
-        const response = await axios(config);
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching role attributes:', error.response ? error.response.data : error.message);
-        throw error;
-    }
-};
-
 const checkClientIam = (IamClient) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -86,7 +68,7 @@ const convertData = async (data_db, data_api, access_token) => {
     const newRoles = []
     // Sử dụng map để lặp qua mảng roles với async/await
     await Promise.all(data_api.Resources.map(async (role) => {
-        const dataDetail = await getRoleAttributes(role.id, access_token);
+        const dataDetail = await getAttributes(role.id, 'https://192.168.11.35:9443/scim2/v2/Roles', access_token);
         // console.log(role)
         let typeCounter = 0;
         switch (true) {
@@ -199,8 +181,8 @@ const convertData = async (data_db, data_api, access_token) => {
                     // Nếu không khớp với bất kỳ trường hợp nào
                     break;
             }
-            newData.map((n) => {
-                n.methods.map((method) => {
+            newData.forEach((n) => {
+                n.methods.forEach((method) => {
                     if (method.name === permission.value)
                         method.allow = true
                 })
@@ -223,19 +205,43 @@ const convertData = async (data_db, data_api, access_token) => {
                     }
                 })
             })
-
         })
     })
     // console.log(convertedRole)
     // Return convertedRole sau khi đã được xử lý
     return convertedRole;
 };
+async function readJsonFile(filePath) {
+    try {
+        const data = await readFile(filePath, 'utf8');
+        const jsonData = JSON.parse(data);
+        return jsonData;
+    } catch (err) {
+        console.error('Error reading file:', err);
+        return null;
+    }
+}
 
-const convertDataList = async (id, data, token_group, token_role) => {
+
+// Mảng để lưu dữ liệu JSON
+let jsonDataArray = [];
+
+const convertDataList = async (id, data, token_group, token_role, token_resources) => {
+    // const resources = await getList('https://192.168.11.35:9443/api/server/v1/api-resources', token_resources)
+    // resources.apiResources.map((apiResource) => {
+    //     // if (apiResource.name === 'User')
+    //     console.log(apiResource.name)
+    // })
+
+    const filePath = 'src/modules/roleGroup/ex_detailRole.json';
+    const jsonData = await readJsonFile(filePath);
+    if (jsonData) {
+        jsonDataArray = jsonData;
+    }
     const convertedRole = {
         status: 1,
         id: data.roles[0].audienceValue,
-        moduleCode: data.roles[0].audienceDisplay,
+        moduleCode: 'Incomming Document',
         userId: id,
         roles: [],
         __v: 0,
@@ -255,11 +261,13 @@ const convertDataList = async (id, data, token_group, token_role) => {
             type: typeCounter,
             name: group.display
         };
+        newRole.column = jsonDataArray[0];
+        newRole.row = jsonDataArray[1];
         convertedRole.roles.push(newRole);
         typeCounter++;
 
         await Promise.all(detailGroup.roles.map(async (role) => {
-            const detailRole = await getRoleAttributes(role.value, token_role);
+            const detailRole = await getAttributes(role.value, 'https://192.168.11.35:9443/scim2/v2/Roles', token_role);
 
             // Xử lý role.display
             if (role.display.includes("tiep_nhan")) {
@@ -334,17 +342,17 @@ const convertDataList = async (id, data, token_group, token_role) => {
             });
             return newData;
         }));
-
         return newRole;
     }));
 
     return convertedRole;
 };
+
 module.exports = {
-    getListRoles,
-    getRoleAttributes,
+    getList,
     checkClientIam,
     convertData,
     getAttributes,
-    convertDataList
+    convertDataList,
+    readJsonFile
 }

@@ -5,7 +5,7 @@ const Client = require('../../model/client.shareModel');
 const GetToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getListRoles, getRoleAttributes, checkClientIam, convertData, getAttributes, convertDataList } = require('./roleGroup.service');
+const { getList, checkClientIam, convertData, getAttributes, convertDataList } = require('./roleGroup.service');
 
 const dotenv = require('dotenv');
 dotenv.config()
@@ -51,7 +51,7 @@ async function list(req, res, next) {
             const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
             if (access_token) {
               const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
-              const dataList = await getListRoles(host_role, access_token, clientId)
+              const dataList = await getList(host_role, access_token, clientId)
               // return res.status(200).json({ dataChange })
               const convert = await convertData(listRoleGroups, dataList, access_token)
               return res.status(200).json(convert)
@@ -491,6 +491,7 @@ async function iamUserBussinessRole(req, res, next) {
     const token = await GetToken('internal_group_mgt_view', iamClientId, iamClientSecret);
     const token_role = await GetToken('internal_role_mgt_view', iamClientId, iamClientSecret);
     const token_user = await GetToken('internal_user_mgt_view', iamClientId, iamClientSecret);
+    const token_resources = await GetToken('internal_api_resource_view', iamClientId, iamClientSecret);
 
     // Nếu không lấy được token, trả về phản hồi lỗi
     if (!token) {
@@ -506,7 +507,7 @@ async function iamUserBussinessRole(req, res, next) {
       return res.status(400).json({ msg: 'Không thể lấy vai trò' });
     }
     // Chuyển đổi các thuộc tính sang định dạng mong muốn
-    const convertData = await convertDataList(userId, roleGroupAttributes, token, token_role)
+    const convertData = await convertDataList(userId, roleGroupAttributes, token, token_role, token_resources)
     // Trả về vai trò đã chuyển đổi
     return res.json(convertData);
   } catch (error) {
