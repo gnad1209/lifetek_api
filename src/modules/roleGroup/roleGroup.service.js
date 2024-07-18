@@ -1,27 +1,12 @@
 const https = require('https');
-const axios = require('axios')
-const fs = require('fs');
-const util = require('util');
-const readFile = util.promisify(fs.readFile);
+const axios = require('axios');
+const jsonDataCodeModule = require('./ex_listRole.json')
+const jsonDataAttributes = require('./ex_detailRole.json')
 const dotenv = require('dotenv');
 dotenv.config()
 const agent = new https.Agent({
     rejectUnauthorized: false,
 });
-
-async function readJsonFile(filePath) {
-    try {
-        const data = await readFile(filePath, 'utf8');
-        const jsonData = JSON.parse(data);
-        return jsonData;
-    } catch (err) {
-        console.error('Error reading file:', err);
-        return null;
-    }
-}
-
-let jsonDataArray = [];
-let jsonDataArrayDetail = [];
 
 const getList = async (host, access_token, clientId) => {
     const userEndpoint = `${host}?clientId=${clientId}`;
@@ -81,15 +66,6 @@ const convertDataList = async (data_db, data_api, access_token) => {
     //data trong db
     const convertedRole = data_db;
     const newRoles = [];
-    //đọc file json
-    const filePathList = 'src/modules/roleGroup/ex_listRole.json';
-    const filePath = 'src/modules/roleGroup/ex_detailRole.json';
-    const jsonDataList = await readJsonFile(filePathList);
-    const jsonData = await readJsonFile(filePath);
-    if (jsonDataList) {
-        jsonDataArray = jsonDataList;
-        jsonDataArrayDetail = jsonData;
-    }
 
     // Sử dụng map để lặp qua mảng Resources với async/awaitzz
     await Promise.all(data_api.Resources.map(async (role) => {
@@ -97,7 +73,7 @@ const convertDataList = async (data_db, data_api, access_token) => {
         //khởi tạo biến đếm cho mỗi bản ghi
         let typeCounter = 0;
         //đổi value clientId
-        jsonDataArrayDetail.config_row.map((jsonData) => {
+        jsonDataAttributes.config_row.map((jsonData) => {
             if (role.displayName.includes(jsonData.title))
                 role.displayName = jsonData.name;
         })
@@ -111,8 +87,8 @@ const convertDataList = async (data_db, data_api, access_token) => {
         }];
         typeCounter++;
         //kiểm tra có codemodule trong file config ko và lặp để thêm các method vào newData nếu có codemodule tương tự db thì convert
-        if (jsonDataArray[role.displayName]) {
-            jsonDataArray[role.displayName].map((jsonData) => {
+        if (jsonDataCodeModule[role.displayName]) {
+            jsonDataCodeModule[role.displayName].map((jsonData) => {
                 const methods = {
                     name: jsonData.name,
                     allow: false
@@ -170,15 +146,6 @@ const convertData = async (id, data, token_group, token_role, token_resources) =
     //     console.log(apiResource.name)
     // })
 
-    //đọc file json
-    const filePathList = 'src/modules/roleGroup/ex_listRole.json';
-    const filePath = 'src/modules/roleGroup/ex_detailRole.json';
-    const jsonDataList = await readJsonFile(filePathList);
-    const jsonData = await readJsonFile(filePath);
-    if (jsonDataList) {
-        jsonDataArray = jsonDataList;
-        jsonDataArrayDetail = jsonData;
-    }
     //biến convert 
     const convertedRole = {
         status: 1,
@@ -205,15 +172,15 @@ const convertData = async (id, data, token_group, token_role, token_resources) =
                 type: typeCounter,
                 name: group.display
             };
-            newRole.column = jsonDataArrayDetail.column;
-            newRole.row = jsonDataArrayDetail.row;
+            newRole.column = jsonDataAttributes.column;
+            newRole.row = jsonDataAttributes.row;
             convertedRole.roles.push(newRole);
             typeCounter++;
 
             await Promise.all(detailGroup.roles.map(async (role) => {
                 //lấy chi tiết dữ liệu của role trong wso2
                 const detailRole = await getAttributes(role.value, process.env.HOST_DETAIL_ROLES, token_role);
-                jsonDataArrayDetail.config_row.map((jsonData) => {
+                jsonDataAttributes.config_row.map((jsonData) => {
                     if (role.display.includes(jsonData.title))
                         role.display = jsonData.name;
                 })
@@ -225,12 +192,12 @@ const convertData = async (id, data, token_group, token_role, token_resources) =
                 };
                 //mapping tên trong wso2 ra ngoài
                 //config lại tên của permission, xét giá trị cho chúng có tồn tại ko
-                await jsonDataArrayDetail.config_row.map((jsonData) => {
+                await jsonDataAttributes.config_row.map((jsonData) => {
                     if (role.display.includes(jsonData.title))
                         role.display = jsonData.name;
                 })
                 // sửa dữ liệu các chức năng của role
-                jsonDataArray.IncommingDocument.map((jsonData) => {
+                jsonDataCodeModule.IncommingDocument.map((jsonData) => {
                     newData.data[jsonData.name] = false;
                     detailRole.permissions.forEach((permission) => {
                         if (permission.value.includes(jsonData.title))
@@ -252,5 +219,4 @@ module.exports = {
     convertData,
     getAttributes,
     convertDataList,
-    readJsonFile
 }
