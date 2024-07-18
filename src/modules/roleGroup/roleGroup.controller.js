@@ -32,7 +32,7 @@ async function list(req, res, next) {
     const { limit = 500, skip = 0, clientId, scope, sort, filter = {}, selector } = req.query;
     //Nếu ko có clientID trả về lỗi
     if (!clientId) {
-      return res.status(400).json({ message: "ClientId required" });
+      return res.status(400).json({ msg: "ClientId required" });
     }
     //kiểm tra IAM_ENABLE == "TRUE" call api get list roles
     if (IAM_ENABLE !== "TRUE") {
