@@ -116,7 +116,7 @@ const convertDataList = async (data_db, data_api, access_token) => {
         // console.log(newData)
     }));
     //kiểm tra ko có dữ liệu mới thì trả về dữ liệu trong db
-    if (newRoles) {
+    if (newRoles.length !== 0) {
         convertedRole.data.forEach((a) => {
             a.roles.forEach((role) => {
                 newRoles.forEach((newRole) => {
@@ -150,16 +150,17 @@ const convertData = async (id, data, token_group, token_role, token_resources) =
     const convertedRole = {
         status: 1,
         id: data.roles[0].audienceValue,
-        moduleCode: 'IncommingDocument',
+        moduleCode: "IncommingDocument",
         userId: id,
         roles: [],
         __v: 0,
         createdAt: data.meta.created,
         updatedAt: data.meta.lastModified
     };
+    const key = Object.keys(jsonDataCodeModule)
     //biến đọc số bản ghi role
     let typeCounter = 0;
-    if (convertedRole.moduleCode == "IncommingDocument") {
+    if (key.includes(convertedRole.moduleCode)) {
         await Promise.all(data.groups.map(async (group) => {
             //lấy dữ liệu chi tiết groups trong wso2 
             const detailGroup = await getAttributes(group.value, process.env.HOST_GROUPS, token_group);
@@ -197,7 +198,7 @@ const convertData = async (id, data, token_group, token_role, token_resources) =
                         role.display = jsonData.name;
                 })
                 // sửa dữ liệu các chức năng của role
-                jsonDataCodeModule.IncommingDocument.map((jsonData) => {
+                jsonDataCodeModule[convertedRole.moduleCode].map((jsonData) => {
                     newData.data[jsonData.name] = false;
                     detailRole.permissions.forEach((permission) => {
                         if (permission.value.includes(jsonData.title))
