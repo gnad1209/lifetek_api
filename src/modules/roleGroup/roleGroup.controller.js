@@ -2,7 +2,7 @@ const lodash = require('lodash');
 const axios = require('axios');
 
 const Client = require('../../model/client.shareModel');
-const GetToken = require('../../service/getToken.shareService');
+const getToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
 const { getList, checkClientIam, convertData, getAttributes, convertDataList } = require('./roleGroup.service');
@@ -50,7 +50,7 @@ async function list(req, res, next) {
       //lấy được accesstoken từ hàm gettoken
       return res.status(400).json({ msg: "Invalid IAM config for clientId" });
     }
-    const accessToken = await GetToken(scope, clientIam.iamClientId, clientIam.iamClientSecret);
+    const accessToken = await getToken(scope, clientIam.iamClientId, clientIam.iamClientSecret);
     if (!accessToken) {
       //data rolegroups từ db và wso2
       return res.status(400).json({ msg: "Access token is not exist" });
@@ -465,10 +465,10 @@ async function iamUserBussinessRole(req, res, next) {
 
     // Lấy token cho phạm vi 
     const [tokenGroups, tokenRoles, tokenUsers, tokenResources] = await Promise.all([
-      GetToken('internal_group_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
-      GetToken('internal_role_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
-      GetToken('internal_user_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
-      GetToken('internal_api_resource_view', clientIam.iamClientId, clientIam.iamClientSecret)
+      getToken('internal_group_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
+      getToken('internal_role_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
+      getToken('internal_user_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
+      getToken('internal_api_resource_view', clientIam.iamClientId, clientIam.iamClientSecret)
     ]);
 
     // Nếu không lấy được token, trả về phản hồi lỗi
