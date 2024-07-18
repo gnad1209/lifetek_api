@@ -41,20 +41,20 @@ async function list(req, res, next) {
       return res.json(listRoleGroups);
     }
     //kiểm tra clientId có trong tb clientIam không
-    const iamClient = await Client.findOne({ clientId: clientId })
+    const iamClient = await Client.findOne({ clientId: clientId });
     if (!iamClient) {
-      return res.status(400).json({ message: "No IAM config for clientId" });
+      return res.status(400).json({ msg: "No IAM config for clientId" });
     }
     const clientIam = await checkClientIam(iamClient);
     //kiểm tra iamClientId và iamClientSecret tồn tại không
     if (!clientIam.iamClientId || !clientIam.iamClientSecret) {
       //lấy được accesstoken từ hàm gettoken
-      return res.json({ message: "Invalid IAM config for clientId" });
+      return res.status(400).json({ msg: "Invalid IAM config for clientId" });
     }
     const accessToken = await GetToken(scope, clientIam.iamClientId, clientIam.iamClientSecret);
     if (!accessToken) {
       //data rolegroups từ db và wso2
-      return res.json({ message: "Access token is not exist" });
+      return res.status(400).json({ msg: "Access token is not exist" });
     }
     const [listRoleGroups, dataListApi] = await Promise.all([
       RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector }),
@@ -437,7 +437,7 @@ async function iamUserBussinessRole(req, res, next) {
   try {
     // Lấy ID người dùng và clientId từ các tham số yêu cầu
     const { userId } = req.params;
-    const { clientId } = req.query
+    const { clientId } = req.query;
     // Nếu không có ID người dùng, trả về phản hồi lỗi
     if (!userId) {
       return res.status(400).json({ msg: 'Yêu cầu ID người dùng' });
@@ -453,17 +453,15 @@ async function iamUserBussinessRole(req, res, next) {
       return res.json(role);
     }
     // Tìm IAM client
-    const iamClient = await Client.findOne({ clientId: clientId })
-
+    const iamClientDb = await Client.findOne({ clientId: clientId });
     // Nếu không tìm thấy IAM client, trả về phản hồi không tìm thấy
-    if (!iamClient) {
+    if (!iamClientDb) {
       return res.status(404).json({ msg: 'Không tìm thấy IamClient' });
     }
-
-    const clientIam = await checkClientIam(iamClient)
+    const clientIam = await checkClientIam(iamClientDb);
     // Lấy ID và mật khẩu của IAM client
     if (!clientIam.iamClientId || !clientIam.iamClientSecret) {
-      return res.json({ message: "Invalid AIM config for clientId" })
+      return res.status(404).json({ message: "không tìm thấy iamClientId và không tìm thấy iamClientSecret" });
     }
 
     // Lấy token cho phạm vi 
@@ -492,9 +490,9 @@ async function iamUserBussinessRole(req, res, next) {
       return res.status(400).json({ msg: 'Không thể lấy vai trò' });
     }
     // Chuyển đổi các thuộc tính sang định dạng mong muốn
-    const convert = await convertData(userId, roleGroupAttributes, tokenGroups, tokenRoles, tokenResources)
+    const convert = await convertData(userId, roleGroupAttributes, tokenGroups, tokenRoles, tokenResources);
     // Trả về vai trò đã chuyển đổi
-    return res.json(convert);
+    return res.status(200).json(convert);
   } catch (error) {
     // Ghi log và trả về phản hồi lỗi máy chủ nội bộ trên mọi lỗi
     console.error(error);

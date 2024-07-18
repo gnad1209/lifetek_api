@@ -132,7 +132,7 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
     });
 }
 
-const convertData = async (id, data, token_group, token_role, token_resources) => {
+const convertData = async (id, data, tokenGroup, tokenRole, tokenResources) => {
     //đang test
     // const resources = await getList('https://192.168.11.35:9443/api/server/v1/api-resources', token_resources)
     // resources.apiResources.map((apiResource) => {
@@ -159,7 +159,7 @@ const convertData = async (id, data, token_group, token_role, token_resources) =
     }
     await Promise.all(data.groups.map(async (group) => {
         //lấy dữ liệu chi tiết groups trong wso2 
-        const detailGroup = await getAttributes(group.value, process.env.HOST_GROUPS, token_group);
+        const detailGroup = await getAttributes(group.value, process.env.HOST_GROUPS, tokenGroup);
         const newRole = {
             column: [],
             row: [],
@@ -176,7 +176,7 @@ const convertData = async (id, data, token_group, token_role, token_resources) =
 
         await Promise.all(detailGroup.roles.map(async (role) => {
             //lấy chi tiết dữ liệu của role trong wso2
-            const detailRole = await getAttributes(role.value, process.env.HOST_DETAIL_ROLES, token_role);
+            const detailRole = await getAttributes(role.value, process.env.HOST_DETAIL_ROLES, tokenRole);
             jsonDataAttributes.config_row.map((jsonData) => {
                 if (role.display.includes(jsonData.title))
                     role.display = jsonData.name;
@@ -189,7 +189,7 @@ const convertData = async (id, data, token_group, token_role, token_resources) =
             };
             //mapping tên trong wso2 ra ngoài
             //config lại tên của permission, xét giá trị cho chúng có tồn tại ko
-            await jsonDataAttributes.config_row.map((jsonData) => {
+            jsonDataAttributes.config_row.map((jsonData) => {
                 if (role.display.includes(jsonData.title))
                     role.display = jsonData.name;
             })
