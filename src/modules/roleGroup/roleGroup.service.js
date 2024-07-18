@@ -1,9 +1,9 @@
 const https = require('https');
 const axios = require('axios');
-const jsonDataCodeModule = require('./ex_listRole.json')
-const jsonDataAttributes = require('./ex_detailRole.json')
+const jsonDataCodeModule = require('./ex_listRole.json');
+const jsonDataAttributes = require('./ex_detailRole.json');
 const dotenv = require('dotenv');
-dotenv.config()
+dotenv.config();
 const agent = new https.Agent({
     rejectUnauthorized: false,
 });
@@ -56,9 +56,9 @@ const checkClientIam = (iamClient) => {
         try {
             const iamClientId = iamClient.iamClientId;
             const iamClientSecret = iamClient.iamClientSecret;
-            resolve({ iamClientId: iamClientId, iamClientSecret: iamClientSecret })
+            resolve({ iamClientId: iamClientId, iamClientSecret: iamClientSecret });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
     })
 }
@@ -73,7 +73,7 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
         //khởi tạo biến đếm cho mỗi bản ghi
         let typeCounter = 0;
         //đổi value clientId
-        jsonDataAttributes.config_row.map((jsonData) => {
+        jsonDataAttributes.configRow.map((jsonData) => {
             if (role.displayName.includes(jsonData.title))
                 role.displayName = jsonData.name;
         })
@@ -113,7 +113,7 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
         // Return newData
     }));
     //kiểm tra ko có dữ liệu mới thì trả về dữ liệu trong db
-    if (!newRoles.length !== 0) {
+    if (newRoles.length === 0) {
         return convertedRole;
     }
     convertedRole.data.forEach((a) => {
@@ -130,6 +130,7 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
             });
         });
     });
+    return convertedRole;
 }
 
 const convertData = async (id, data, tokenGroup, tokenRole, tokenResources) => {
@@ -177,7 +178,7 @@ const convertData = async (id, data, tokenGroup, tokenRole, tokenResources) => {
         await Promise.all(detailGroup.roles.map(async (role) => {
             //lấy chi tiết dữ liệu của role trong wso2
             const detailRole = await getAttributes(role.value, process.env.HOST_DETAIL_ROLES, tokenRole);
-            jsonDataAttributes.config_row.map((jsonData) => {
+            jsonDataAttributes.configRow.map((jsonData) => {
                 if (role.display.includes(jsonData.title))
                     role.display = jsonData.name;
             })
@@ -189,7 +190,7 @@ const convertData = async (id, data, tokenGroup, tokenRole, tokenResources) => {
             };
             //mapping tên trong wso2 ra ngoài
             //config lại tên của permission, xét giá trị cho chúng có tồn tại ko
-            jsonDataAttributes.config_row.map((jsonData) => {
+            jsonDataAttributes.configRow.map((jsonData) => {
                 if (role.display.includes(jsonData.title))
                     role.display = jsonData.name;
             })

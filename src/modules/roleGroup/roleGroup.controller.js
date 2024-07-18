@@ -9,7 +9,7 @@ const { getList, checkClientIam, convertData, getAttributes, convertDataList } =
 
 const dotenv = require('dotenv');
 dotenv.config()
-
+const { IAM_ENABLE, HOST_ROLES, HOST_USERS } = process.env;
 /**
  * Load roleGroup and append to req
  */
@@ -30,15 +30,14 @@ async function list(req, res, next) {
   try {
     //khai báo respsone data rolegroups
     const { limit = 500, skip = 0, clientId, scope, sort, filter = {}, selector } = req.query;
-    const hostRole = process.env.HOST_ROLES;
     //Nếu ko có clientID trả về lỗi
     if (!clientId) {
       return res.status(400).json({ message: "ClientId required" });
     }
     //kiểm tra IAM_ENABLE == "TRUE" call api get list roles
-    if (process.env.IAM_ENABLE !== "TRUE") {
+    if (IAM_ENABLE !== "TRUE") {
       const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
-      return res.json(listRoleGroups);
+      return res.status(400).json(listRoleGroups);
     }
     //kiểm tra clientId có trong tb clientIam không
     const iamClient = await Client.findOne({ clientId: clientId });
@@ -58,7 +57,7 @@ async function list(req, res, next) {
     }
     const [listRoleGroups, dataListApi] = await Promise.all([
       RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector }),
-      getList(hostRole, accessToken, clientId)
+      getList(HOST_ROLES, accessToken, clientId)
     ]);
     // return res.status(200).json({ dataChange })
     const convert = await convertDataList(listRoleGroups, dataListApi, accessToken);
@@ -470,7 +469,7 @@ async function iamUserBussinessRole(req, res, next) {
       GetToken('internal_role_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
       GetToken('internal_user_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
       GetToken('internal_api_resource_view', clientIam.iamClientId, clientIam.iamClientSecret)
-    ])
+    ]);
 
     // Nếu không lấy được token, trả về phản hồi lỗi
     switch (true) {
@@ -484,7 +483,7 @@ async function iamUserBussinessRole(req, res, next) {
         break;
     }
     // Lấy các thuộc tính của user
-    const roleGroupAttributes = await getAttributes(userId, process.env.HOST_USERS, tokenUsers);
+    const roleGroupAttributes = await getAttributes(userId, HOST_USERS, tokenUsers);
     // Nếu không lấy được trả về phản hồi lỗi
     if (!roleGroupAttributes) {
       return res.status(400).json({ msg: 'Không thể lấy vai trò' });
