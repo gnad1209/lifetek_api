@@ -467,10 +467,12 @@ async function iamUserBussinessRole(req, res, next) {
     }
 
     // Lấy token cho phạm vi 
-    const tokenGroups = await GetToken('internal_group_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret);
-    const tokenRoles = await GetToken('internal_role_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret);
-    const tokenUsers = await GetToken('internal_user_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret);
-    const tokenResources = await GetToken('internal_api_resource_view', clientIam.iamClientId, clientIam.iamClientSecret);
+    const [tokenGroups, tokenRoles, tokenUsers, tokenResources] = await Promise.all([
+      GetToken('internal_group_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
+      GetToken('internal_role_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
+      GetToken('internal_user_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
+      GetToken('internal_api_resource_view', clientIam.iamClientId, clientIam.iamClientSecret)
+    ])
 
     // Nếu không lấy được token, trả về phản hồi lỗi
     switch (true) {
