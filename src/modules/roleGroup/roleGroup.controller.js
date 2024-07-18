@@ -49,12 +49,12 @@ async function list(req, res, next) {
     }
 
     // Kiểm tra clientId có trong bảng clientIam không
-    const iamClient = await Client.findOne({ clientId: clientId });
-    if (!iamClient) {
+    const iamClientDb = await Client.findOne({ clientId: clientId });
+    if (!iamClientDb) {
       return res.status(400).json({ msg: "No IAM config for clientId" });
     }
 
-    const clientIam = await checkClientIam(iamClient);
+    const clientIam = await checkClientIam(iamClientDb);
 
     // Kiểm tra iamClientId và iamClientSecret tồn tại không
     if (!clientIam.iamClientId || !clientIam.iamClientSecret) {
