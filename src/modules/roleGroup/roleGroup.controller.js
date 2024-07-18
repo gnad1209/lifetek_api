@@ -51,7 +51,7 @@ async function list(req, res, next) {
               const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
               const dataList = await getList(host_role, access_token, clientId)
               // return res.status(200).json({ dataChange })
-              const convert = await convertData(listRoleGroups, dataList, access_token)
+              const convert = await convertDataList(listRoleGroups, dataList, access_token)
               return res.status(200).json(convert)
             }
           }
@@ -503,7 +503,7 @@ async function iamUserBussinessRole(req, res, next) {
       return res.status(400).json({ msg: 'Không thể lấy vai trò' });
     }
     // Chuyển đổi các thuộc tính sang định dạng mong muốn
-    const convertData = await convertDataList(userId, roleGroupAttributes, token, token_role, token_resources)
+    const convertData = await convertData(userId, roleGroupAttributes, token, token_role, token_resources)
     // Trả về vai trò đã chuyển đổi
     return res.json(convertData);
   } catch (error) {

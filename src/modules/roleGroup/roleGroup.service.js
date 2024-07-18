@@ -77,7 +77,7 @@ const checkClientIam = (IamClient) => {
         }
     })
 }
-const convertData = async (data_db, data_api, access_token) => {
+const convertDataList = async (data_db, data_api, access_token) => {
     //data trong db
     const convertedRole = data_db;
     const newRoles = [];
@@ -151,7 +151,7 @@ const convertData = async (data_db, data_api, access_token) => {
     return convertedRole;
 }
 
-const convertDataList = async (id, data, token_group, token_role, token_resources) => {
+const convertData = async (id, data, token_group, token_role, token_resources) => {
     //đang test
     // const resources = await getList('https://192.168.11.35:9443/api/server/v1/api-resources', token_resources)
     // resources.apiResources.map((apiResource) => {
