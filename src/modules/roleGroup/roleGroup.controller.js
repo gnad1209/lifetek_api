@@ -35,45 +35,33 @@ async function list(req, res, next) {
     if (!clientId) {
       return res.status(400).json({ message: "ClientId required" })
     }
-    else {
-      //kiểm tra IAM_ENABLE == "TRUE" call api get list roles
-      if (process.env.IAM_ENABLE == "TRUE") {
-        //kiểm tra clientId có trong tb clientIam không
-        const IamClient = await Client.findOne({ clientId: clientId })
-        if (IamClient) {
-          const ClientIam = await checkClientIam(IamClient)
-          //kiểm tra iamClientId và iamClientSecret tồn tại không
-          if (ClientIam.iamClientId || ClientIam.iamClientSecret) {
-            //lấy được accesstoken từ hàm gettoken
-            const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
-            if (access_token) {
-              //data rolegroups từ db và wso2
-              const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
-              const dataListApi = await getList(host_role, access_token, clientId)
-              // return res.status(200).json({ dataChange })
-              const convert = await convertDataList(listRoleGroups, dataListApi, access_token)
-              return res.status(200).json(convert)
-            }
-          }
-          else {
-            //trả về lỗi nếu trong bảng clientIam ko có clientID và clientSecret
-            return res.json({ message: "Invalid AIM config for clientId" })
-          }
-        } else {
-          //trả về lỗi nếu tb ko tồn tại clientId
-          return res.status(400).json({ message: "No AIM config for clientId" })
-        }
-      }
-      else {
-        //nếu proccess.env.enable != "TRUE" tìm các bản ghi trong tb roleGroups có clientId trùng khớp
-
-        console.log('zo day')
-        const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
-
-        return res.json(listRoleGroups);
-      }
+    //kiểm tra IAM_ENABLE == "TRUE" call api get list roles
+    if (process.env.IAM_ENABLE !== "TRUE") {
+      console.log('zo day')
+      const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
+      return res.json(listRoleGroups);
     }
-
+    //kiểm tra clientId có trong tb clientIam không
+    const IamClient = await Client.findOne({ clientId: clientId })
+    if (!IamClient) {
+      return res.status(400).json({ message: "No AIM config for clientId" })
+    }
+    const ClientIam = await checkClientIam(IamClient)
+    //kiểm tra iamClientId và iamClientSecret tồn tại không
+    if (!ClientIam.iamClientId || !ClientIam.iamClientSecret) {
+      //lấy được accesstoken từ hàm gettoken
+      return res.json({ message: "Invalid AIM config for clientId" })
+    }
+    const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
+    if (!access_token) {
+      //data rolegroups từ db và wso2
+      return res.json({ message: "access token is not exist" })
+    }
+    const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
+    const dataListApi = await getList(host_role, access_token, clientId)
+    // return res.status(200).json({ dataChange })
+    const convert = await convertDataList(listRoleGroups, dataListApi, access_token)
+    return res.status(200).json(convert)
   } catch (e) {
     next(e);
   }
@@ -476,10 +464,8 @@ async function iamUserBussinessRole(req, res, next) {
     if (!ClientIam.iamClientId || !ClientIam.iamClientSecret) {
       return res.json({ message: "Invalid AIM config for clientId" })
     }
-    // Tìm IAM client với ID và mật khẩu cung cấp
-    // const iam = await Client.find({ iamClientId, iamClientSecret });
 
-    // Lấy token cho phạm vi 'internal_role_mgt_view'
+    // Lấy token cho phạm vi 
     const token_groups = await GetToken('internal_group_mgt_view', ClientIam.iamClientId, ClientIam.iamClientSecret);
     const token_roles = await GetToken('internal_role_mgt_view', ClientIam.iamClientId, ClientIam.iamClientSecret);
     const token_users = await GetToken('internal_user_mgt_view', ClientIam.iamClientId, ClientIam.iamClientSecret);
