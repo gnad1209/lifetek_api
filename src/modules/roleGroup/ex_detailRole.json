@@ -1,5 +1,5 @@
-[
-    [
+{
+    "row": [
         {
             "name": "receive",
             "title": "Tiếp nhận"
@@ -29,7 +29,7 @@
             "title": "Tra cứu/Thống kê"
         }
     ],
-    [
+    "column": [
         {
             "name": "view",
             "title": "Xem"
@@ -40,7 +40,7 @@
         },
         {
             "name": "free_role_to_set",
-            "title": "Chuyển xử lý bất kỳ"
+            "title": "Chuyển xử lí bất kỳ"
         },
         {
             "name": "department_incharge",
@@ -74,5 +74,35 @@
             "name": "deadlineIncrease",
             "title": "Gia hạn xử lý"
         }
+    ],
+    "config_row": [
+        {
+            "name": "receive",
+            "title": "tiep_nhan"
+        },
+        {
+            "name": "processing",
+            "title": "xu_ly"
+        },
+        {
+            "name": "support",
+            "title": "phoi_hop"
+        },
+        {
+            "name": "view",
+            "title": "nhan_de_biet"
+        },
+        {
+            "name": "command",
+            "title": "chi_dao"
+        },
+        {
+            "name": "feedback",
+            "title": "y_kien"
+        },
+        {
+            "name": "findStatistics",
+            "title": "Tra_cuu"
+        }
     ]
-]
+}

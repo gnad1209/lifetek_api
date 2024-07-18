@@ -1,0 +1,40 @@
+{
+    "IncommingDocument": [
+        {
+            "name": "view",
+            "title": "xem"
+        },
+        {
+            "name": "set_command",
+            "title": "giao_chi_dao"
+        },
+        {
+            "name": "free_role_to_set",
+            "title": "chuyen_xu_li_bat_ky"
+        },
+        {
+            "name": "department_incharge",
+            "title": "nhan_vb_cua_phong"
+        },
+        {
+            "name": "set_complete",
+            "title": "hoan_thanh_xu_ly"
+        },
+        {
+            "name": "returnDocs",
+            "title": "tra_lai"
+        },
+        {
+            "name": "add_more_process",
+            "title": "them_xu_ly"
+        },
+        {
+            "name": "force_set_complete",
+            "title": "bat_buoc_hoan_thanh"
+        },
+        {
+            "name": "set_feedback",
+            "title": "xin_y_kien"
+        }
+    ]
+}
