@@ -102,7 +102,15 @@
         },
         {
             "name": "findStatistics",
-            "title": "Tra_cuu"
+            "title": "Tra_cuu_thong_ke"
+        },
+        {
+            "name": "findStatistics",
+            "title": "tra_cuu_thong_ke"
+        },
+        {
+            "name": "IncommingDocument",
+            "title": "IncommingDocument"
         }
     ]
 }

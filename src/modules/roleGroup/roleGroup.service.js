@@ -90,13 +90,14 @@ const convertDataList = async (data_db, data_api, access_token) => {
         jsonDataArray = jsonDataList;
         jsonDataArrayDetail = jsonData;
     }
+
     // Sử dụng map để lặp qua mảng Resources với async/awaitzz
     await Promise.all(data_api.Resources.map(async (role) => {
-        const dataDetail = await getAttributes(role.id, process.env.HOST_DETAIL_ROLES, access_token);
+        const dataDetailRole = await getAttributes(role.id, process.env.HOST_DETAIL_ROLES, access_token);
         //khởi tạo biến đếm cho mỗi bản ghi
         let typeCounter = 0;
         //đổi value clientId
-        jsonDataArrayDetail.row.map((jsonData) => {
+        jsonDataArrayDetail.config_row.map((jsonData) => {
             if (role.displayName.includes(jsonData.title))
                 role.displayName = jsonData.name;
         })
@@ -104,51 +105,61 @@ const convertDataList = async (data_db, data_api, access_token) => {
         const newData = [{
             _id: role.id,
             titleFunction: '',
-            codeModleFunction: dataDetail.displayName,
+            codeModleFunction: dataDetailRole.displayName,
             clientId: role.displayName,
             methods: []
         }];
         typeCounter++;
-        //lặp để thêm các method vào newData
-        jsonDataArray.IncommingDocument.map((jsonData) => {
-            const methods = {
-                name: jsonData.name,
-                allow: false
-            };
-            newData[0].methods.push(methods);
-            //config lại tên của permission, xét giá trị cho chúng có tồn tại ko
-            dataDetail.permissions.forEach((permission) => {
-                if (permission.value.includes(jsonData.title))
-                    permission.value = jsonData.name;
-                newData.forEach((n) => {
-                    n.methods.forEach((method) => {
-                        if (method.name === permission.value)
-                            method.allow = true;
+        //kiểm tra có codemodule trong file config ko và lặp để thêm các method vào newData nếu có codemodule tương tự db thì convert
+        if (jsonDataArray[role.displayName]) {
+            jsonDataArray[role.displayName].map((jsonData) => {
+                const methods = {
+                    name: jsonData.name,
+                    allow: false
+                };
+                newData[0].methods.push(methods);
+                //config lại tên của permission, xét giá trị cho chúng có tồn tại ko
+                dataDetailRole.permissions.forEach((permission) => {
+                    if (permission.value.includes(jsonData.title))
+                        permission.value = jsonData.name;
+                    newData.forEach((n) => {
+                        n.methods.forEach((method) => {
+                            if (method.name === permission.value)
+                                method.allow = true;
+                        });
+                    });
+                });
+            });
+            newRoles.push(newData);
+            return newRoles;
+        }
+        else {
+            return newRoles;
+        }
+        // Return newData
+        // console.log(newData)
+    }));
+    //kiểm tra ko có dữ liệu mới thì trả về dữ liệu trong db
+    if (newRoles) {
+        convertedRole.data.forEach((a) => {
+            a.roles.forEach((role) => {
+                newRoles.forEach((newRole) => {
+                    // console.log(newRole)
+                    newRole.forEach((n) => {
+                        //DK1-2: ROLE codeModleFnc giống role trong db DK3-4: dữ liệu trong wso2 có GROUPS trùng với groups trong db 
+                        if (n.codeModleFunction.includes(role.codeModleFunction) && n.codeModleFunction[a.code.length + 1] == role.codeModleFunction[0] && n.codeModleFunction.includes(a.code) && n.codeModleFunction[0] === a.code[0]) {
+                            console.log('zo day')
+                            role.methods = n.methods;
+                        }
                     });
                 });
             });
         });
-        // console.log(newData)
-        newRoles.push(newData);
-        return newData; // Return newData
-    }));
-    convertedRole.data.forEach((a) => {
-        a.roles.forEach((role) => {
-            newRoles.forEach((newRole) => {
-                // console.log(newRole)
-                newRole.forEach((n) => {
-                    //DK1: ROLE codeModleFnc giống role trong db DK2-3: dữ liệu trong wso2 có GROUPS trùng với groups trong db 
-                    if (n.codeModleFunction.includes(role.codeModleFunction) && n.codeModleFunction.includes(a.code) && n.codeModleFunction[0] === a.code[0]) {
-                        // console.log('zo day')
-                        role.methods = n.methods;
-                    }
-                })
-            })
-        })
-    })
-    // console.log(convertedRole)
-    // Return convertedRole sau khi đã được xử lý
-    return convertedRole;
+        return convertedRole;
+    }
+    else {
+        return convertedRole;
+    };
 }
 
 const convertData = async (id, data, token_group, token_role, token_resources) => {
