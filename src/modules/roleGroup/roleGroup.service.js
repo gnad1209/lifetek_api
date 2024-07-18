@@ -8,21 +8,21 @@ const agent = new https.Agent({
     rejectUnauthorized: false,
 });
 
-const getList = async (host, access_token, clientId) => {
+const getList = async (host, accessToken, clientId) => {
     const userEndpoint = `${host}?clientId=${clientId}`;
     const configRole = {
         method: 'get',
         url: userEndpoint,
         headers: {
-            'Authorization': `Bearer ${access_token}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
         },
         httpsAgent: agent
     };
     try {
         //lấy data list role groups
-        response_role_group = await axios(configRole);
-        return response_role_group.data
+        responseRoleGroup = await axios(configRole);
+        return responseRoleGroup.data
     } catch (error) {
         //trả về lỗi nếu ko call được api list role
         console.error('Error fetching role attributes:', error.response ? error.response.data : error.message);
@@ -51,25 +51,25 @@ const getAttributes = async (userId, host, accessToken) => {
     }
 };
 
-const checkClientIam = (IamClient) => {
+const checkClientIam = (iamClient) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const iamClientId = IamClient.iamClientId;
-            const iamClientSecret = IamClient.iamClientSecret;
+            const iamClientId = iamClient.iamClientId;
+            const iamClientSecret = iamClient.iamClientSecret;
             resolve({ iamClientId: iamClientId, iamClientSecret: iamClientSecret })
         } catch (e) {
             reject(e)
         }
     })
 }
-const convertDataList = async (data_db, data_api, access_token) => {
+const convertDataList = async (dataDb, dataApi, accessToken) => {
     //data trong db
-    const convertedRole = data_db;
+    const convertedRole = dataDb;
     const newRoles = [];
 
     // Sử dụng map để lặp qua mảng Resources với async/awaitzz
-    await Promise.all(data_api.Resources.map(async (role) => {
-        const dataDetailRole = await getAttributes(role.id, process.env.HOST_DETAIL_ROLES, access_token);
+    await Promise.all(dataApi.Resources.map(async (role) => {
+        const dataDetailRole = await getAttributes(role.id, process.env.HOST_DETAIL_ROLES, accessToken);
         //khởi tạo biến đếm cho mỗi bản ghi
         let typeCounter = 0;
         //đổi value clientId
@@ -151,7 +151,7 @@ const convertData = async (id, data, token_group, token_role, token_resources) =
         createdAt: data.meta.created,
         updatedAt: data.meta.lastModified
     };
-    const key = Object.keys(jsonDataCodeModule)
+    const key = Object.keys(jsonDataCodeModule);
     //biến đọc số bản ghi role
     let typeCounter = 0;
     if (!key.includes(convertedRole.moduleCode)) {

@@ -30,38 +30,39 @@ async function list(req, res, next) {
   try {
     //khai báo respsone data rolegroups
     const { limit = 500, skip = 0, clientId, scope, sort, filter = {}, selector } = req.query;
-    const host_role = process.env.HOST_ROLES
+    const hostRole = process.env.HOST_ROLES;
     //Nếu ko có clientID trả về lỗi
     if (!clientId) {
-      return res.status(400).json({ message: "ClientId required" })
+      return res.status(400).json({ message: "ClientId required" });
     }
     //kiểm tra IAM_ENABLE == "TRUE" call api get list roles
     if (process.env.IAM_ENABLE !== "TRUE") {
-      console.log('zo day')
       const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
       return res.json(listRoleGroups);
     }
     //kiểm tra clientId có trong tb clientIam không
-    const IamClient = await Client.findOne({ clientId: clientId })
-    if (!IamClient) {
-      return res.status(400).json({ message: "No AIM config for clientId" })
+    const iamClient = await Client.findOne({ clientId: clientId })
+    if (!iamClient) {
+      return res.status(400).json({ message: "No IAM config for clientId" });
     }
-    const ClientIam = await checkClientIam(IamClient)
+    const clientIam = await checkClientIam(iamClient);
     //kiểm tra iamClientId và iamClientSecret tồn tại không
-    if (!ClientIam.iamClientId || !ClientIam.iamClientSecret) {
+    if (!clientIam.iamClientId || !clientIam.iamClientSecret) {
       //lấy được accesstoken từ hàm gettoken
-      return res.json({ message: "Invalid AIM config for clientId" })
+      return res.json({ message: "Invalid IAM config for clientId" });
     }
-    const access_token = await GetToken(scope, ClientIam.iamClientId, ClientIam.iamClientSecret)
-    if (!access_token) {
+    const accessToken = await GetToken(scope, clientIam.iamClientId, clientIam.iamClientSecret);
+    if (!accessToken) {
       //data rolegroups từ db và wso2
-      return res.json({ message: "access token is not exist" })
+      return res.json({ message: "Access token is not exist" });
     }
-    const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
-    const dataListApi = await getList(host_role, access_token, clientId)
+    const [listRoleGroups, dataListApi] = await Promise.all([
+      RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector }),
+      getList(hostRole, accessToken, clientId)
+    ]);
     // return res.status(200).json({ dataChange })
-    const convert = await convertDataList(listRoleGroups, dataListApi, access_token)
-    return res.status(200).json(convert)
+    const convert = await convertDataList(listRoleGroups, dataListApi, accessToken);
+    return res.status(200).json(convert);
   } catch (e) {
     next(e);
   }
@@ -452,44 +453,44 @@ async function iamUserBussinessRole(req, res, next) {
       return res.json(role);
     }
     // Tìm IAM client
-    const IamClient = await Client.findOne({ clientId: clientId })
+    const iamClient = await Client.findOne({ clientId: clientId })
 
     // Nếu không tìm thấy IAM client, trả về phản hồi không tìm thấy
-    if (!IamClient) {
+    if (!iamClient) {
       return res.status(404).json({ msg: 'Không tìm thấy IamClient' });
     }
 
-    const ClientIam = await checkClientIam(IamClient)
+    const clientIam = await checkClientIam(iamClient)
     // Lấy ID và mật khẩu của IAM client
-    if (!ClientIam.iamClientId || !ClientIam.iamClientSecret) {
+    if (!clientIam.iamClientId || !clientIam.iamClientSecret) {
       return res.json({ message: "Invalid AIM config for clientId" })
     }
 
     // Lấy token cho phạm vi 
-    const token_groups = await GetToken('internal_group_mgt_view', ClientIam.iamClientId, ClientIam.iamClientSecret);
-    const token_roles = await GetToken('internal_role_mgt_view', ClientIam.iamClientId, ClientIam.iamClientSecret);
-    const token_users = await GetToken('internal_user_mgt_view', ClientIam.iamClientId, ClientIam.iamClientSecret);
-    const token_resources = await GetToken('internal_api_resource_view', ClientIam.iamClientId, ClientIam.iamClientSecret);
+    const tokenGroups = await GetToken('internal_group_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret);
+    const tokenRoles = await GetToken('internal_role_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret);
+    const tokenUsers = await GetToken('internal_user_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret);
+    const tokenResources = await GetToken('internal_api_resource_view', clientIam.iamClientId, clientIam.iamClientSecret);
 
     // Nếu không lấy được token, trả về phản hồi lỗi
     switch (true) {
-      case !token_roles:
+      case !tokenRoles:
         return res.status(400).json({ msg: 'Không thể lấy token role' });
-      case !token_groups:
+      case !tokenGroups:
         return res.status(400).json({ msg: 'Không thể lấy token group' });
-      case !token_users:
+      case !tokenUsers:
         return res.status(400).json({ msg: 'Không thể lấy token user' });
       default:
         break;
     }
     // Lấy các thuộc tính của user
-    const roleGroupAttributes = await getAttributes(userId, process.env.HOST_USERS, token_users);
+    const roleGroupAttributes = await getAttributes(userId, process.env.HOST_USERS, tokenUsers);
     // Nếu không lấy được trả về phản hồi lỗi
     if (!roleGroupAttributes) {
       return res.status(400).json({ msg: 'Không thể lấy vai trò' });
     }
     // Chuyển đổi các thuộc tính sang định dạng mong muốn
-    const convert = await convertData(userId, roleGroupAttributes, token_groups, token_roles, token_resources)
+    const convert = await convertData(userId, roleGroupAttributes, tokenGroups, tokenRoles, tokenResources)
     // Trả về vai trò đã chuyển đổi
     return res.json(convert);
   } catch (error) {
