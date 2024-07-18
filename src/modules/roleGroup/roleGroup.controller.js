@@ -8,7 +8,7 @@ const RoleGroup = require('./roleGroup.model');
 const { getList, checkClientIam, convertData, getAttributes, convertDataList } = require('./roleGroup.service');
 
 const dotenv = require('dotenv');
-dotenv.config()
+dotenv.config();
 const { IAM_ENABLE, HOST_ROLES, HOST_USERS } = process.env;
 /**
  * Load roleGroup and append to req
