@@ -224,7 +224,7 @@ const configNewData = (detailRolePermission, codeModule, newData) => {
     };
 };
 
-const changeNewRole = async (detailGroup, codeModule, newRole, tokenRole) => {
+const changeNewRole = async (detailGroup, codeModule, newRole, tokenRole, convertedRole) => {
     try {
         const configRow = jsonDataAttributes.configRow;
         await Promise.all(detailGroup.map(async (role) => {
@@ -248,6 +248,11 @@ const changeNewRole = async (detailGroup, codeModule, newRole, tokenRole) => {
             await configNewData(detailRolePermission, codeModule, newData);
             // sửa dữ liệu các chức năng của role
             newRole.data.push(newData);
+            if (!role.audienceValue) {
+                throw new Error('không có id của app');
+            }
+            convertedRole.id = role.audienceValue;
+            return role.audienceValue;
         }));
     } catch (e) {
         return e;
@@ -266,9 +271,12 @@ const convertData = async (id, data, tokenGroup, tokenRole, tokenResources) => {
             if (!data) {
                 throw new Error('không tìm thấy data user');
             }
+            if (!data.roles[0].audienceValue) {
+                throw new Error('không tìm thấy data user');
+            }
             const convertedRole = {
                 status: 1,
-                id: data.roles[0].audienceValue,
+                id: '',
                 moduleCode: 'IncommingDocument',
                 userId: id,
                 roles: [],
@@ -314,7 +322,7 @@ const convertData = async (id, data, tokenGroup, tokenRole, tokenResources) => {
                 if (!detailGroup.roles) {
                     throw new Error(`không tìm được role của groups: ${group.display}`);
                 }
-                await changeNewRole(detailGroup.roles, codeModule, newRole, tokenRole);
+                await changeNewRole(detailGroup.roles, codeModule, newRole, tokenRole, convertedRole);
             }));
             return resolve(convertedRole);
         } catch (e) {
