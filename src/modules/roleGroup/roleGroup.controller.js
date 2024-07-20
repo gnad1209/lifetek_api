@@ -5,7 +5,7 @@ const Client = require('../../model/client.shareModel');
 const getToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getList, checkClientIam, convertData, getAttributes, convertDataList } = require('./roleGroup.service');
+const { getList, checkClientIam, convertDataDetailRole, getAttributes, convertDataList } = require('./roleGroup.service');
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -514,7 +514,7 @@ async function iamUserBussinessRole(req, res, next) {
     }
 
     // Chuyển đổi các thuộc tính sang định dạng mong muốn
-    const convert = await convertData(userId, roleGroupAttributes, tokenGroups, tokenRoles, tokenResources);
+    const convert = await convertDataDetailRole(userId, roleGroupAttributes, tokenGroups, tokenRoles, tokenResources);
 
     // Trả về vai trò đã chuyển đổi
     return res.status(200).json(convert);
