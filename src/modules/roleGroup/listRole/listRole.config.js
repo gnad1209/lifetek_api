@@ -17,6 +17,7 @@ const updateDisplayNameRoleGroups = (arr, name) => {
 
 const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
   try {
+    //lặp mảng data trong dữ liệu trả về
     convertedRole.forEach((a) => {
       if (!Array.isArray(a.roles)) {
         throw new Error('roles trong convertedRole không phải là 1 mảng');
@@ -26,8 +27,10 @@ const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
           if (!Array.isArray(newRole)) {
             throw new Error('newRole trong newRoles không phải là 1 mảng');
           }
+
           newRole.forEach((n) => {
             if (
+              //kiểm tra codeModleFnc có tên role(role.codeModleFunction) và tên group(a.code) ko
               n.codeModleFunction.includes(role.codeModleFunction) &&
               n.codeModleFunction.includes(a.code) &&
               n.codeModleFunction[a.code.length + 1] === role.codeModleFunction[0] &&

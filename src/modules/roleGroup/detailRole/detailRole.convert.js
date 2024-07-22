@@ -21,8 +21,9 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
       createdAt: data.meta.created,
       updatedAt: data.meta.lastModified,
     };
-
+    //khai báo các module đã được config và lấy dữ liệu của các module đó
     const key = Object.keys(jsonDataCodeModule);
+    const codeModule = jsonDataCodeModule[convertedRole.moduleCode];
     let typeCounter = 0;
 
     if (!key.includes(convertedRole.moduleCode)) {
@@ -31,13 +32,15 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
     if (!Array.isArray(data.groups)) {
       throw new Error('data.groups không phải là 1 mảng');
     }
-
     await Promise.all(
       data.groups.map(async (group) => {
         //lấy dữ liệu chi tiết groups trong wso2
         const detailGroup = await getAttributes(group.value, process.env.HOST_GROUPS, tokenGroup);
         if (!detailGroup) {
           throw new Error('không tìm tìm được chi tiết group');
+        }
+        if (!detailGroup.roles) {
+          throw new Error(`không tìm được role của groups: ${group.display}`);
         }
         if (!jsonDataAttributes.column) {
           throw new Error('không có config cho loại chức năng này');
@@ -54,12 +57,10 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
           type: typeCounter,
           name: group.display,
         };
+        //cấu hình trường role trong biến convertedRole
         convertedRole.roles.push(newRole);
         typeCounter++;
-        const codeModule = jsonDataCodeModule[convertedRole.moduleCode];
-        if (!detailGroup.roles) {
-          throw new Error(`không tìm được role của groups: ${group.display}`);
-        }
+        //thêm và sửa các phần trường trong detailRole
         await updateNewRoleInDetailRole(detailGroup.roles, codeModule, newRole, tokenRole, convertedRole);
       }),
     );

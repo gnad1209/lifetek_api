@@ -63,12 +63,13 @@ async function list(req, res, next) {
     }
 
     // Data role groups từ DB và WSO2
-    const [listRoleGroups, dataListApi, convert] = await Promise.all([
+    const [listRoleGroups, dataListApi] = await Promise.all([
       RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector }),
       getList(process.env.HOST_ROLES, accessToken, clientId),
-      // Convert data
-      convertDataList(listRoleGroups, dataListApi, accessToken),
     ]);
+
+    // Convert data
+    const convert = await convertDataList(listRoleGroups, dataListApi, accessToken);
 
     return res.status(200).json(convert);
   } catch (e) {
