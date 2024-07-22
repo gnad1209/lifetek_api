@@ -5,7 +5,7 @@ const Client = require('../../model/client.shareModel');
 const getToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getList, checkClientIam, getAttributes } = require('./roleGroup.service');
+const { getList, getClientIam, getAttributes } = require('./roleGroup.service');
 const { convertDataDetailRole } = require('./detailRole/detailRole.convert');
 const { convertDataList } = require('./listRole/listRole.convert');
 const dotenv = require('dotenv');
@@ -49,7 +49,7 @@ async function list(req, res, next) {
       return res.status(400).json({ msg: 'No IAM config for clientId' });
     }
 
-    const clientIam = checkClientIam(iamClientDb);
+    const clientIam = getClientIam(iamClientDb);
 
     // Kiểm tra iamClientId và iamClientSecret tồn tại không
     if (!clientIam.iamClientId || !clientIam.iamClientSecret) {
@@ -62,13 +62,18 @@ async function list(req, res, next) {
       return res.status(400).json({ msg: 'Access token does not exist' });
     }
 
+    // kiểm tra
+    if (!process.env.HOST_ROLES) {
+      return res.status(400).json({ msg: 'đường dẫn lấy list role không có' });
+    }
+
     // Data role groups từ DB và WSO2
     const [listRoleGroups, dataListApi] = await Promise.all([
       RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector }),
       getList(process.env.HOST_ROLES, accessToken, clientId),
     ]);
 
-    // Convert data
+    // Convert data lấy từ wso2 theo file config list role
     const convert = await convertDataList(listRoleGroups, dataListApi, accessToken);
 
     return res.status(200).json(convert);
@@ -473,7 +478,7 @@ async function iamUserBussinessRole(req, res, next) {
       return res.status(404).json({ msg: 'Không tìm thấy IamClient' });
     }
 
-    const clientIam = await checkClientIam(iamClientDb);
+    const clientIam = getClientIam(iamClientDb);
 
     // Lấy ID và mật khẩu của IAM client
     if (!clientIam.iamClientId || !clientIam.iamClientSecret) {
@@ -508,7 +513,7 @@ async function iamUserBussinessRole(req, res, next) {
       return res.status(400).json({ msg: 'Không thể lấy vai trò' });
     }
 
-    // Chuyển đổi các thuộc tính sang định dạng mong muốn
+    // Convert data lấy từ wso2 theo file config detail role
     const convert = await convertDataDetailRole(userId, roleGroupAttributes, tokenGroups, tokenRoles, tokenResources);
 
     // Trả về vai trò đã chuyển đổi

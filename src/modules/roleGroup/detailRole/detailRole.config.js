@@ -1,12 +1,18 @@
-const jsonDataAttributes = require('../ex_detailRole.json');
-const { getAttributes } = require('../roleGroup.service');
+const jsonDataAttributes = require('../config/ex_detailRole.json');
+const { getAttributes } = require('../config/roleGroup.service');
 const dotenv = require('dotenv');
 dotenv.config();
 
 // Hàm cập nhật tên hiển thị cho chi tiết vai trò
+/**
+ * @param {Array} arr - Mảng cấu hình tên.
+ * @param {string} name - Tên ban đầu của chi tiết vai trò.
+ * @returns {string} - Tên đã được thay đổi theo cấu hình.
+ * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
+ * @chức_năng - Hàm này cập nhật tên hiển thị cho chi tiết vai trò dựa trên tên có sẵn trong mảng cấu hình.
+ */
 const updateDisplayNameDetailRole = (arr, name) => {
   try {
-    //config tên theo file config có sẵn
     arr.forEach((data) => {
       if (name.includes(data.title)) {
         name = data.name;
@@ -19,6 +25,14 @@ const updateDisplayNameDetailRole = (arr, name) => {
 };
 
 // Hàm cấu hình dữ liệu mới trong chi tiết vai trò
+/**
+ * @param {Array} detailRolePermission - Mảng quyền hạn chi tiết của vai trò.
+ * @param {Array} codeModule - Mảng cấu hình phương thức.
+ * @param {Object} newData - Dữ liệu mới sẽ được cập nhật.
+ * @returns {Object} - Dữ liệu mới đã được cấu hình.
+ * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
+ * @chức_năng - Hàm này cấu hình dữ liệu mới trong chi tiết vai trò.
+ */
 const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) => {
   try {
     if (!Array.isArray(detailRolePermission)) {
@@ -27,7 +41,6 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
     if (!Array.isArray(codeModule)) {
       throw new Error('codeModule không phải là 1 mảng');
     }
-    //config giá trị của newData trong convertData
     codeModule.forEach((jsonData) => {
       newData.data[jsonData.name] = false;
       detailRolePermission.forEach((permission) => {
@@ -43,19 +56,26 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
 };
 
 // Hàm cập nhật vai trò mới trong chi tiết vai trò
+/**
+ * @param {Array} detailGroup - Mảng nhóm chi tiết.
+ * @param {Array} codeModule - Mảng cấu hình phương thức.
+ * @param {Object} newRole - Dữ liệu vai trò mới sẽ được cập nhật.
+ * @param {string} tokenRole - Mã token để truy cập API.
+ * @param {Object} convertedRole - Dữ liệu vai trò đã chuyển đổi.
+ * @returns {Promise<void>}
+ * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
+ * @chức_năng - Hàm này cập nhật vai trò mới trong chi tiết vai trò bằng cách lấy thông tin chi tiết từ WSO2 và cấu hình lại dữ liệu.
+ */
 const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, tokenRole, convertedRole) => {
   try {
     const configRow = jsonDataAttributes.configRow;
     await Promise.all(
       detailGroup.map(async (role) => {
-        //lấy chi tiết dữ liệu của role trong wso2
         const detailRole = await getAttributes(role.value, process.env.HOST_DETAIL_ROLES, tokenRole);
         if (!detailRole) {
           throw new Error('không tìm được chi tiết role');
         }
-        //mapping tên trong wso2 ra ngoài
-        //config lại tên của permission, xét giá trị cho chúng có tồn tại ko
-        const name = await updateDisplayNameDetailRole(configRow, role.display);
+        const name = updateDisplayNameDetailRole(configRow, role.display);
         if (!name) {
           throw new Error('ko có tên role trong file config');
         }
@@ -66,12 +86,10 @@ const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, token
         };
         const detailRolePermission = detailRole.permissions;
         await configNewDataInDetailRole(detailRolePermission, codeModule, newData);
-        // sửa dữ liệu các chức năng của role
         newRole.data.push(newData);
         if (!role.audienceValue) {
           throw new Error('không có id của app');
         }
-        //gán id của dữ liệu khởi tạo ban đầu bằng id app đc lấy từ wso2
         convertedRole.id = role.audienceValue;
         return role.audienceValue;
       }),
