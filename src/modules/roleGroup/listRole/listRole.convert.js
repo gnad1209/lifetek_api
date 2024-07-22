@@ -3,7 +3,6 @@ const {
   updateDisplayNameRoleGroups,
   createMethodsInDataRoleGroup,
   updateMethodsInDataRoleGroup,
-  configMethodsInDataRoleGroup,
 } = require('./listRole.config');
 const jsonDataCodeModule = require('../ex_listRole.json');
 const jsonDataAttributes = require('../ex_detailRole.json');
@@ -62,12 +61,10 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
         return newRoles;
       }),
     );
-
     // Nếu không có dữ liệu mới, hãy trả lại vai trò đã chuyển đổi ban đầu
     if (newRoles.length === 0) {
       return convertedRole;
     }
-
     // Cập nhật ConvertedRole với các phương thức từ newRoles
     updateMethodsInDataRoleGroup(convertedRoleData, newRoles);
     return convertedRole;
