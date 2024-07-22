@@ -293,10 +293,12 @@ const changeNewRoleInDetailRole = async (detailGroup, codeModule, newRole, token
 const convertDataDetailRole = async (id, data, tokenGroup, tokenRole, tokenResources) => {
     //đang test
     try {
+        const resources = await getList('https://192.168.11.35:9443/api/server/v1/api-resources', tokenResources)
+        resources.apiResources.map((apiResource) => {
+            // if (apiResource.name === 'User')
+            // console.log(apiResource.name)
+        })
         if (!data) {
-            throw new Error('không tìm thấy data user');
-        }
-        if (!data.roles[0].audienceValue) {
             throw new Error('không tìm thấy data user');
         }
         const convertedRole = {
