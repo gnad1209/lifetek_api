@@ -29,8 +29,11 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
         if (!role.id) {
           return convertedRole;
         }
+        //lấy giá trị detail role
         const dataDetailRole = await getAttributes(role.id, process.env.HOST_DETAIL_ROLES, accessToken);
+        //sửa displayName trong roleGroups đúng fomat
         const displayName = updateDisplayNameRoleGroups(configRow, role.displayName);
+        //lấy dữ liệu trong file config
         const codeModle = jsonDataCodeModule[displayName];
         const permissionRole = dataDetailRole.permissions;
         if (!dataDetailRole) {
@@ -67,7 +70,6 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
 
     // Cập nhật ConvertedRole với các phương thức từ newRoles
     updateMethodsInDataRoleGroup(convertedRoleData, newRoles);
-
     return convertedRole;
   } catch (e) {
     throw e;

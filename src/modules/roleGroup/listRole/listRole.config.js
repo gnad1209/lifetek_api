@@ -27,7 +27,7 @@ const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
           if (!Array.isArray(newRole)) {
             throw new Error('newRole trong newRoles không phải là 1 mảng');
           }
-
+          //lặp mảng newRole để lấy những role có trên wso2 so sánh với db
           newRole.forEach((n) => {
             if (
               //kiểm tra codeModleFnc có tên role(role.codeModleFunction) và tên group(a.code) ko

@@ -68,6 +68,7 @@ const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, token
         if (!role.audienceValue) {
           throw new Error('không có id của app');
         }
+        //gán id của dữ liệu khởi tạo ban đầu bằng id app đc lấy từ wso2
         convertedRole.id = role.audienceValue;
         return role.audienceValue;
       }),
