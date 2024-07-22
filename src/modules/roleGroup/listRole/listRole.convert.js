@@ -9,6 +9,7 @@ const jsonDataAttributes = require('../ex_detailRole.json');
 const dotenv = require('dotenv');
 dotenv.config();
 
+//Hàm chuyển đổi dữ liệu danh sách roleGroups
 const convertDataList = async (dataDb, dataApi, accessToken) => {
   try {
     const convertedRole = dataDb;

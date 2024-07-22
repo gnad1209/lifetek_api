@@ -3,6 +3,7 @@ const { getAttributes } = require('../roleGroup.service');
 const dotenv = require('dotenv');
 dotenv.config();
 
+// Hàm cập nhật tên hiển thị cho chi tiết vai trò
 const updateDisplayNameDetailRole = (arr, name) => {
   try {
     //config tên theo file config có sẵn
@@ -17,6 +18,7 @@ const updateDisplayNameDetailRole = (arr, name) => {
   }
 };
 
+// Hàm cấu hình dữ liệu mới trong chi tiết vai trò
 const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) => {
   try {
     if (!Array.isArray(detailRolePermission)) {
@@ -40,6 +42,7 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
   }
 };
 
+// Hàm cập nhật vai trò mới trong chi tiết vai trò
 const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, tokenRole, convertedRole) => {
   try {
     const configRow = jsonDataAttributes.configRow;

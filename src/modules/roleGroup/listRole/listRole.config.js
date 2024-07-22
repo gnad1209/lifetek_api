@@ -1,6 +1,4 @@
-const dotenv = require('dotenv');
-dotenv.config();
-
+// Hàm thay đổi tên hiển thị của nhóm vai trò dựa trên tên có sẵn trong mảng cấu hình
 const updateDisplayNameRoleGroups = (arr, name) => {
   try {
     //config tên theo file config có sẵn
@@ -15,6 +13,7 @@ const updateDisplayNameRoleGroups = (arr, name) => {
   }
 };
 
+// Hàm thay đổi các phương thức trong nhóm vai trò dữ liệu
 const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
   try {
     //lặp mảng data trong dữ liệu trả về
@@ -47,6 +46,7 @@ const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
   }
 };
 
+//Hàm tạo các phương thức trong nhóm vai trò dữ liệu
 const createMethodsInDataRoleGroup = (codeModle, permissionRole, newData) => {
   try {
     if (!Array.isArray(codeModle)) {
@@ -72,6 +72,7 @@ const createMethodsInDataRoleGroup = (codeModle, permissionRole, newData) => {
   }
 };
 
+//Hàm cấu hình các phương thức trong nhóm vai trò dữ liệu
 const configMethodsInDataRoleGroup = (permissionRole, jsonData, newData) => {
   try {
     if (!Array.isArray(permissionRole)) {

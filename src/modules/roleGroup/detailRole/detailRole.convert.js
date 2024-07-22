@@ -5,6 +5,7 @@ const { updateNewRoleInDetailRole } = require('./detailRole.config');
 const dotenv = require('dotenv');
 dotenv.config();
 
+// Hàm chuyển đổi dữ liệu chi tiết vai trò
 const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
   //đang test
   try {

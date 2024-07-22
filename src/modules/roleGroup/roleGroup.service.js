@@ -6,6 +6,7 @@ const agent = new https.Agent({
   rejectUnauthorized: false,
 });
 
+//hàm lấy dữ liệu danh sách các thuộc tính của chức năng cần tìm (vd: groups, users, roles,...)
 const getList = async (host, accessToken, clientId) => {
   const userEndpoint = `${host}?clientId=${clientId}`;
   const configRole = {
@@ -28,6 +29,7 @@ const getList = async (host, accessToken, clientId) => {
   }
 };
 
+//hàm lấy dữ liệu chi tiết các thuộc tính của chức năng cần tìm (vd: group, user, role,...)
 const getAttributes = async (userId, host, accessToken) => {
   const roleEndpoint = `${host}/${userId}`;
 
@@ -49,6 +51,7 @@ const getAttributes = async (userId, host, accessToken) => {
   }
 };
 
+//Hàm kiểm tra ClientIam trong db
 const checkClientIam = (iamClient) => {
   try {
     const iamClientId = iamClient.iamClientId;
