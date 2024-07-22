@@ -13,9 +13,11 @@ dotenv.config();
  */
 const updateDisplayNameDetailRole = (arr, name) => {
   try {
+    // Kiểm tra xem arr có phải là mảng không
     if (!Array.isArray(arr)) {
       throw new Error('arr không phải là 1 mảng');
     }
+    // Kiểm tra xem name có tồn tại không
     if (!name) {
       throw new Error('không tìm thấy name');
     }
@@ -42,12 +44,15 @@ const updateDisplayNameDetailRole = (arr, name) => {
  */
 const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) => {
   try {
+    //kiểm tra detailRolePermission không phải là 1 mảng hay ko
     if (!Array.isArray(detailRolePermission)) {
       throw new Error('detailRolePermission không phải là 1 mảng');
     }
+    //kiểm tra codeModule không phải là 1 mảng hay ko
     if (!Array.isArray(codeModule)) {
       throw new Error('codeModule không phải là 1 mảng');
     }
+    //kiểm tra newData có tồn tại hay ko
     if (!newData) {
       throw new Error('không tìm thấy newData');
     }
@@ -83,32 +88,40 @@ const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, token
     // Lấy cấu hình các vai trò từ jsonDataAttributes
     const configRow = jsonDataAttributes.configRow;
     if (!detailGroup) {
+      // Kiểm tra nếu detailGroup không tồn tại
       throw new Error('ko có tên role trong file config');
     }
     if (!codeModule) {
+      // Kiểm tra nếu codeModule không tồn tại
       throw new Error('ko có codeModule trong file config');
     }
     if (!newRole) {
+      // Kiểm tra nếu newRole không tồn tại
       throw new Error('ko tìm thấy newRole');
     }
     if (!tokenRole) {
+      // Kiểm tra nếu tokenRole không tồn tại
       throw new Error('ko tìm thấy token để lấy listRole');
     }
     if (!convertedRole) {
+      // Kiểm tra nếu convertedRole không tồn tại
       throw new Error('không có convertedRole');
     }
     await Promise.all(
       detailGroup.map(async (role) => {
         if (!role.value) {
+          // Kiểm tra id trong trường role có tồn tại hay không
           throw new Error('không tìm được id của các vai trò từ wso2');
         }
         const detailRole = await getAttributes(role.value, process.env.HOST_DETAIL_ROLES, tokenRole);
         if (!detailRole) {
+          // Kiểm tra có tìm được detailRole hay không
           throw new Error('không tìm được chi tiết role');
         }
         // Cập nhật tên hiển thị cho detailRole
         const name = updateDisplayNameDetailRole(configRow, role.display);
         if (!name) {
+          // Kiểm tra name sau khi sửa có tồn tại hay không
           throw new Error('ko có tên role trong file config');
         }
         // Tạo đối tượng newData với các giá trị ban đầu để cấu hình trường Role trong biến newRole

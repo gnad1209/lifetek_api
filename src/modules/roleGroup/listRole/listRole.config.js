@@ -8,9 +8,11 @@
  */
 const updateDisplayNameRoleGroups = (arr, name) => {
   try {
+    // Kiểm tra xem arr có phải là mảng không
     if (!Array.isArray(arr)) {
       throw new Error('arr không phải là 1 mảng');
     }
+    // Kiểm tra xem name có tồn tại không
     if (!name) {
       throw new Error('không tìm thấy name');
     }
@@ -36,18 +38,22 @@ const updateDisplayNameRoleGroups = (arr, name) => {
  */
 const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
   try {
+    // Kiểm tra xem convertedRole có tồn tại không
     if (!convertedRole) {
       throw new Error('không tìm thấy convertedRole');
     }
+    // Kiểm tra xem newRoles có tồn tại không
     if (!newRoles) {
       throw new Error('không tìm thấy newRoles');
     }
     convertedRole.forEach((a) => {
+      // Kiểm tra xem roles của từng phần tử có phải là mảng không
       if (!Array.isArray(a.roles)) {
         throw new Error('roles trong convertedRole không phải là 1 mảng');
       }
       a.roles.forEach((role) => {
         newRoles.forEach((newRole) => {
+          // Kiểm tra xem newRole có phải là mảng không
           if (!Array.isArray(newRole)) {
             throw new Error('newRole trong newRoles không phải là 1 mảng');
           }
@@ -80,16 +86,20 @@ const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
  */
 const createMethodsInDataRoleGroup = (codeModle, permissionRole, newData) => {
   try {
+    // Kiểm tra xem codeModle có phải là mảng không
     if (!Array.isArray(codeModle)) {
       throw new Error('codeModle trong convertedDetailRole không phải là 1 mảng');
     }
+    // Kiểm tra xem permissionRole có phải là mảng không
     if (!Array.isArray(permissionRole)) {
       throw new Error('permissionRole trong convertedDetailRole không phải là 1 mảng');
     }
+    // Kiểm tra xem newData có phải là mảng không
     if (!Array.isArray(newData)) {
       throw new Error('newData không phải là 1 mảng');
     }
     codeModle.forEach((jsonData) => {
+      // Kiểm tra xem jsonData có name không
       if (!jsonData.name) {
         return { mgs: 'file config không có name của role' };
       }
@@ -118,12 +128,15 @@ const createMethodsInDataRoleGroup = (codeModle, permissionRole, newData) => {
  */
 const configMethodsInDataRoleGroup = (permissionRole, jsonData, newData) => {
   try {
+    // Kiểm tra xem permissionRole có phải là mảng không
     if (!Array.isArray(permissionRole)) {
       throw new Error('permissionRole trong convertedRole không phải là 1 mảng');
     }
+    // Kiểm tra xem jsonData có tồn tại không
     if (!jsonData) {
       throw new Error('không có sẵn config cho dữ liệu');
     }
+    // Kiểm tra xem newData có phải là mảng không
     if (!Array.isArray(newData)) {
       throw new Error('newData không phải là 1 mảng');
     }
