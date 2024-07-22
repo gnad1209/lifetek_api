@@ -53,15 +53,13 @@ const getAttributes = async (userId, host, accessToken) => {
 };
 
 const checkClientIam = (iamClient) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const iamClientId = iamClient.iamClientId;
-            const iamClientSecret = iamClient.iamClientSecret;
-            resolve({ iamClientId: iamClientId, iamClientSecret: iamClientSecret });
-        } catch (e) {
-            reject(e);
-        }
-    })
+    try {
+        const iamClientId = iamClient.iamClientId;
+        const iamClientSecret = iamClient.iamClientSecret;
+        return ({ iamClientId: iamClientId, iamClientSecret: iamClientSecret });
+    } catch (e) {
+        throw e;
+    }
 }
 
 const changeDisplayNameDetailRole = (arr, name) => {
@@ -74,7 +72,7 @@ const changeDisplayNameDetailRole = (arr, name) => {
         });
         return name;
     } catch (e) {
-        return e;
+        throw e;
     }
 }
 
@@ -88,12 +86,15 @@ const changeDisplayNameRoleGroups = (arr, name) => {
         });
         return name;
     } catch (e) {
-        return e;
+        throw e;
     }
 }
 
 const createMethodsInDataDetailRole = (codeModle, permissionRole, newData) => {
     try {
+        if (!Array.isArray(codeModle)) {
+            throw new Error('codeModle trong convertedDetailRole không phải là 1 mảng');
+        };
         codeModle.forEach((jsonData) => {
 
             //lỗi file config ko có tên
@@ -111,12 +112,21 @@ const createMethodsInDataDetailRole = (codeModle, permissionRole, newData) => {
             return respone;
         });
     } catch (e) {
-        return e;
+        throw e;
     };
 };
 
 const configMethodsInDataDetailRole = (permissionRole, jsonData, newData) => {
     try {
+        if (!Array.isArray(permissionRole)) {
+            throw new Error('permissionRole trong convertedRole không phải là 1 mảng');
+        };
+        if (!jsonData) {
+            throw new Error('không có sẵn config cho dữ liệu')
+        }
+        if (!Array.isArray(newData)) {
+            throw new Error('newData không phải là 1 mảng');
+        };
         permissionRole.forEach((permission) => {
             if (permission.value.includes(jsonData.title)) {
                 permission.value = jsonData.name;
@@ -157,7 +167,7 @@ const changeMethodsInDataDetailRole = (convertedRole, newRoles) => {
             });
         });
     } catch (e) {
-        return e;
+        throw e;
     }
 };
 
@@ -224,6 +234,12 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
 
 const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) => {
     try {
+        if (!Array.isArray(detailRolePermission)) {
+            throw new Error('detailRolePermission không phải là 1 mảng');
+        }
+        if (!Array.isArray(codeModule)) {
+            throw new Error('codeModule không phải là 1 mảng');
+        }
         //config giá trị của newData trong convertData
         codeModule.forEach((jsonData) => {
             newData.data[jsonData.name] = false;
@@ -235,7 +251,7 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
         });
         return newData;
     } catch (e) {
-        return e;
+        throw e;
     };
 };
 
@@ -270,18 +286,13 @@ const changeNewRoleInDetailRole = async (detailGroup, codeModule, newRole, token
             return role.audienceValue;
         }));
     } catch (e) {
-        return e;
+        throw e;
     };
 };
 
 const convertDataDetailRole = async (id, data, tokenGroup, tokenRole, tokenResources) => {
     //đang test
     try {
-        const resources = await getList('https://192.168.11.35:9443/api/server/v1/api-resources', tokenResources)
-        resources.apiResources.map((apiResource) => {
-            // if (apiResource.name === 'User')
-            // console.log(apiResource.name)
-        })
         if (!data) {
             throw new Error('không tìm thấy data user');
         }
@@ -340,7 +351,7 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole, tokenResou
         }));
         return convertedRole;
     } catch (e) {
-        return e;
+        throw e;
     };
 };
 
