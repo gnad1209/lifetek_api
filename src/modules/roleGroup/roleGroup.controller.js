@@ -5,8 +5,9 @@ const Client = require('../../model/client.shareModel');
 const getToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getList, checkClientIam, convertDataDetailRole, getAttributes, convertDataList } = require('./roleGroup.service');
-
+const { getList, checkClientIam, getAttributes } = require('./roleGroup.service');
+const { convertDataDetailRole } = require('./detailRole/detailRole.convert');
+const { convertDataList } = require('./listRole/listRole.convert');
 const dotenv = require('dotenv');
 dotenv.config();
 const { IAM_ENABLE, HOST_ROLES, HOST_USERS } = process.env;
@@ -29,21 +30,15 @@ async function load(req, res, next, id) {
 async function list(req, res, next) {
   try {
     // Khai báo response data role groups
-    const { limit = 500,
-      skip = 0,
-      clientId,
-      scope,
-      sort,
-      filter = {},
-      selector } = req.query;
+    const { limit = 500, skip = 0, clientId, scope, sort, filter = {}, selector } = req.query;
 
     // Nếu không có clientId trả về lỗi
     if (!clientId) {
-      return res.status(400).json({ msg: "ClientId required" });
+      return res.status(400).json({ msg: 'ClientId required' });
     }
 
     // Kiểm tra IAM_ENABLE == "TRUE" call API get list roles
-    if (process.env.IAM_ENABLE !== "TRUE") {
+    if (process.env.IAM_ENABLE !== 'TRUE') {
       const listRoleGroups = await RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector });
       return res.status(200).json(listRoleGroups);
     }
@@ -51,30 +46,29 @@ async function list(req, res, next) {
     // Kiểm tra clientId có trong bảng clientIam không
     const iamClientDb = await Client.findOne({ clientId: clientId });
     if (!iamClientDb) {
-      return res.status(400).json({ msg: "No IAM config for clientId" });
+      return res.status(400).json({ msg: 'No IAM config for clientId' });
     }
 
-    const clientIam = await checkClientIam(iamClientDb);
+    const clientIam = checkClientIam(iamClientDb);
 
     // Kiểm tra iamClientId và iamClientSecret tồn tại không
     if (!clientIam.iamClientId || !clientIam.iamClientSecret) {
-      return res.status(400).json({ msg: "Invalid IAM config for clientId" });
+      return res.status(400).json({ msg: 'Invalid IAM config for clientId' });
     }
 
     // Lấy access token từ hàm getToken
     const accessToken = await getToken(scope, clientIam.iamClientId, clientIam.iamClientSecret);
     if (!accessToken) {
-      return res.status(400).json({ msg: "Access token does not exist" });
+      return res.status(400).json({ msg: 'Access token does not exist' });
     }
 
     // Data role groups từ DB và WSO2
-    const [listRoleGroups, dataListApi] = await Promise.all([
+    const [listRoleGroups, dataListApi, convert] = await Promise.all([
       RoleGroup.list({ filter: { clientId: clientId } }, { limit, skip, sort, selector }),
-      getList(process.env.HOST_ROLES, accessToken, clientId)
+      getList(process.env.HOST_ROLES, accessToken, clientId),
+      // Convert data
+      convertDataList(listRoleGroups, dataListApi, accessToken),
     ]);
-
-    // Convert data
-    const convert = await convertDataList(listRoleGroups, dataListApi, accessToken);
 
     return res.status(200).json(convert);
   } catch (e) {
@@ -114,7 +108,7 @@ async function create(req, res, next) {
       other,
     });
 
-    return roleGroup.save().then(savedroleGroup => {
+    return roleGroup.save().then((savedroleGroup) => {
       if (savedroleGroup) res.json(savedroleGroup);
       else res.transforemer.errorBadRequest('Can not create item');
     });
@@ -178,7 +172,7 @@ async function update(req, res, next) {
       const uri = getRederect.redirectUris[0];
       host = appHost(uri);
     }
-    return roleGroup.save().then(async result => {
+    return roleGroup.save().then(async (result) => {
       // await Employee.updateMany({ roleGroupSource: code }, { firstLogin: true });
       await axios
         .put(
@@ -190,10 +184,10 @@ async function update(req, res, next) {
             },
           },
         )
-        .then(response => {
+        .then((response) => {
           console.log(response);
         })
-        .catch(error => {
+        .catch((error) => {
           console.log(error.response);
         });
       res.json(result);
@@ -247,7 +241,7 @@ async function updateRoleGroupUser(req, res, next) {
       const employeesInGroup = await Employee.find({ roleGroupSource: roleGroup.code }).lean();
       const listOrganizations = await OrganizationUnit.find({ status: STATUS.ACTIVED }).lean();
       await Promise.all(
-        employeesInGroup.map(async employee => {
+        employeesInGroup.map(async (employee) => {
           const employeeOrganizationUnitId =
             employee.organizationUnit && employee.organizationUnit.organizationUnitId
               ? employee.organizationUnit.organizationUnitId.toString()
@@ -269,7 +263,7 @@ async function updateRoleGroupUser(req, res, next) {
                 title: 'Xóa',
               },
             ],
-            data: listOrganizations.map(item => ({
+            data: listOrganizations.map((item) => ({
               data:
                 item.path && item.path.includes(employeeOrganizationUnitId)
                   ? { view: true, edit: true, delete: true }
@@ -282,7 +276,7 @@ async function updateRoleGroupUser(req, res, next) {
             })),
             type: 0,
             name: 'Phòng ban',
-            row: listOrganizations.map(l => ({
+            row: listOrganizations.map((l) => ({
               access: false,
               expand: false,
               id: l._id,
@@ -321,7 +315,7 @@ async function updateRoleGroupUser(req, res, next) {
       }
       const employeesInGroup = await Employee.find({ roleGroupSource: roleGroup.code }).lean();
       await Promise.all(
-        employeesInGroup.map(async employee =>
+        employeesInGroup.map(async (employee) =>
           Promise.all([
             RoleDeparment.updateMany(
               { userId: employee._id, 'roles.name': 'Phòng ban' },
@@ -413,19 +407,19 @@ function del(req, res, next) {
 
   roleGroup
     .save()
-    .then(result => {
+    .then((result) => {
       res.json({
         success: true,
         data: result,
       });
     })
-    .catch(e => next(e));
+    .catch((e) => next(e));
 }
 
 async function deletedList(req, res, next) {
   try {
     const { ids } = req.body;
-    const arrDataDelete = ids.map(async roleGroupId => RoleGroup.findById(roleGroupId).remove());
+    const arrDataDelete = ids.map(async (roleGroupId) => RoleGroup.findById(roleGroupId).remove());
     const deletedData = await Promise.all(arrDataDelete);
     res.json({
       success: true,
@@ -482,15 +476,15 @@ async function iamUserBussinessRole(req, res, next) {
 
     // Lấy ID và mật khẩu của IAM client
     if (!clientIam.iamClientId || !clientIam.iamClientSecret) {
-      return res.status(404).json({ message: "Không tìm thấy iamClientId và không tìm thấy iamClientSecret" });
+      return res.status(404).json({ message: 'Không tìm thấy iamClientId và không tìm thấy iamClientSecret' });
     }
 
-    // Lấy token cho phạm vi 
+    // Lấy token cho phạm vi
     const [tokenGroups, tokenRoles, tokenUsers, tokenResources] = await Promise.all([
       getToken('internal_group_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
       getToken('internal_role_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
       getToken('internal_user_mgt_view', clientIam.iamClientId, clientIam.iamClientSecret),
-      getToken('internal_api_resource_view', clientIam.iamClientId, clientIam.iamClientSecret)
+      getToken('internal_api_resource_view', clientIam.iamClientId, clientIam.iamClientSecret),
     ]);
 
     // Nếu không lấy được token, trả về phản hồi lỗi
@@ -535,5 +529,5 @@ module.exports = {
   deletedList,
   updateRoleGroupUser,
   updateRoleGroupUserH05,
-  iamUserBussinessRole
+  iamUserBussinessRole,
 };
