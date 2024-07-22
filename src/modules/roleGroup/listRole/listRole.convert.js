@@ -19,11 +19,11 @@ dotenv.config();
  */
 const convertDataList = async (dataDb, dataApi, accessToken) => {
   try {
-    const convertedRole = dataDb;
-    const newRoles = [];
-    const resourcesApi = dataApi.Resources;
-    const configRow = jsonDataAttributes.configRow;
-    const convertedRoleData = convertedRole?.data;
+    const convertedRole = dataDb; // Gán dữ liệu từ cơ sở dữ liệu vào biến convertedRole
+    const newRoles = []; // Khởi tạo mảng newRoles để lưu các vai trò mới
+    const resourcesApi = dataApi.Resources; // Lấy dữ liệu Resources từ dataApi
+    const configRow = jsonDataAttributes.configRow; // Lấy cấu hình hàng từ jsonDataAttributes
+    const convertedRoleData = convertedRole?.data; // Lấy dữ liệu data từ convertedRole
 
     if (!resourcesApi) {
       throw new Error('trường resourcesApi từ dữ liệu của api không tồn tại');
@@ -44,7 +44,9 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
         if (!role.id) {
           return convertedRole;
         }
-
+        if (!process.env.HOST_DETAIL_ROLES) {
+          throw new Error(`đường dẫn lấy chi tiết role trong wso2 không đúng`);
+        }
         // Lấy giá trị chi tiết role
         const dataDetailRole = await getAttributes(role.id, process.env.HOST_DETAIL_ROLES, accessToken);
 
@@ -68,7 +70,7 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
           throw new Error('rolePermission không phải là 1 mảng');
         }
 
-        // Biến cấu hình trường data từ dữ liệu trong db theo file config listRole
+        // Khởi tạo biến newData, cấu hình trường data từ dữ liệu trong db theo file config listRole
         const newData = [
           {
             _id: role.id,
@@ -85,7 +87,7 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
       }),
     );
 
-    // Nếu không có dữ liệu mới, hãy trả lại vai trò đã chuyển đổi ban đầu
+    // Nếu không có dữ liệu mới, hãy trả lại convertedRole ban đầu
     if (newRoles.length === 0) {
       return convertedRole;
     }

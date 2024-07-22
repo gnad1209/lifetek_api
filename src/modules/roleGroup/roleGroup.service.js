@@ -26,7 +26,7 @@ const getList = async (host, accessToken, clientId) => {
     httpsAgent: agent,
   };
   try {
-    // Lấy data danh sách các nhóm vai trò
+    // Lấy data danh sách các loại hình: groups, roles, user,...
     const responseRoleGroup = await axios(configRole);
     return responseRoleGroup.data;
   } catch (error) {
@@ -57,6 +57,7 @@ const getAttributes = async (userId, host, accessToken) => {
   };
 
   try {
+    // Lấy dữ liệu chi tiết của các loại hình: groups, roles, user,...
     const response = await axios(config);
     return response.data;
   } catch (error) {
@@ -76,6 +77,7 @@ const getClientIam = (iamClient) => {
     if (!iamClient) {
       throw new Error('không tìm thấy iamClient');
     }
+    // Gán giá trị iamClientId và iamClientSecret lấy được vào các biến tương ứng
     const iamClientId = iamClient.iamClientId;
     const iamClientSecret = iamClient.iamClientSecret;
     return { iamClientId: iamClientId, iamClientSecret: iamClientSecret };

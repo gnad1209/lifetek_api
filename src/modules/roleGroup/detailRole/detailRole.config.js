@@ -3,17 +3,24 @@ const { getAttributes } = require('../config/roleGroup.service');
 const dotenv = require('dotenv');
 dotenv.config();
 
-// Hàm cập nhật tên hiển thị cho chi tiết vai trò
 /**
+ * Hàm cập nhật tên hiển thị cho detailRole
  * @param {Array} arr - Mảng cấu hình tên.
- * @param {string} name - Tên ban đầu của chi tiết vai trò.
+ * @param {string} name - Tên ban đầu của detailRole.
  * @returns {string} - Tên đã được thay đổi theo cấu hình.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
- * @chức_năng - Hàm này cập nhật tên hiển thị cho chi tiết vai trò dựa trên tên có sẵn trong mảng cấu hình.
+ * @chức_năng - Hàm này cập nhật tên hiển thị cho detailRole dựa trên tên có sẵn trong mảng cấu hình.
  */
 const updateDisplayNameDetailRole = (arr, name) => {
   try {
+    if (!Array.isArray(arr)) {
+      throw new Error('arr không phải là 1 mảng');
+    }
+    if (!name) {
+      throw new Error('không tìm thấy name');
+    }
     arr.forEach((data) => {
+      // Nếu name chứa title của phần tử trong cấu hình, thay đổi name thành name của phần tử đó
       if (name.includes(data.title)) {
         name = data.name;
       }
@@ -24,14 +31,14 @@ const updateDisplayNameDetailRole = (arr, name) => {
   }
 };
 
-// Hàm cấu hình dữ liệu mới trong chi tiết vai trò
+// Hàm cấu hình dữ liệu mới trong detailRole
 /**
  * @param {Array} detailRolePermission - Mảng quyền hạn chi tiết của vai trò.
  * @param {Array} codeModule - Mảng cấu hình phương thức.
  * @param {Object} newData - Dữ liệu mới sẽ được cập nhật.
  * @returns {Object} - Dữ liệu mới đã được cấu hình.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
- * @chức_năng - Hàm này cấu hình dữ liệu mới trong chi tiết vai trò.
+ * @chức_năng - Hàm này cấu hình dữ liệu mới trong detailRole.
  */
 const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) => {
   try {
@@ -41,10 +48,15 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
     if (!Array.isArray(codeModule)) {
       throw new Error('codeModule không phải là 1 mảng');
     }
+    if (!newData) {
+      throw new Error('không tìm thấy newData');
+    }
     codeModule.forEach((jsonData) => {
+      // Thiết lập giá trị mặc định cho các chức năng trong newData là false
       newData.data[jsonData.name] = false;
       detailRolePermission.forEach((permission) => {
         if (permission.value.includes(jsonData.title)) {
+          // Cập nhật giá trị phương thức trong newData thành true, Nếu giá trị permission chứa title từ phần tử cấu hình
           newData.data[jsonData.name] = true;
         }
       });
@@ -55,8 +67,8 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
   }
 };
 
-// Hàm cập nhật vai trò mới trong chi tiết vai trò
 /**
+ * Hàm cập nhật trường role mới trong detailRole
  * @param {Array} detailGroup - Mảng nhóm chi tiết.
  * @param {Array} codeModule - Mảng cấu hình phương thức.
  * @param {Object} newRole - Dữ liệu vai trò mới sẽ được cập nhật.
@@ -64,32 +76,56 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
  * @param {Object} convertedRole - Dữ liệu vai trò đã chuyển đổi.
  * @returns {Promise<void>}
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
- * @chức_năng - Hàm này cập nhật vai trò mới trong chi tiết vai trò bằng cách lấy thông tin chi tiết từ WSO2 và cấu hình lại dữ liệu.
+ * @chức_năng - Hàm này cập nhật trường role mới trong detailRole bằng cách lấy thông tin chi tiết từ WSO2 và cấu hình lại dữ liệu.
  */
 const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, tokenRole, convertedRole) => {
   try {
+    // Lấy cấu hình các vai trò từ jsonDataAttributes
     const configRow = jsonDataAttributes.configRow;
+    if (!detailGroup) {
+      throw new Error('ko có tên role trong file config');
+    }
+    if (!codeModule) {
+      throw new Error('ko có codeModule trong file config');
+    }
+    if (!newRole) {
+      throw new Error('ko tìm thấy newRole');
+    }
+    if (!tokenRole) {
+      throw new Error('ko tìm thấy token để lấy listRole');
+    }
+    if (!convertedRole) {
+      throw new Error('không có convertedRole');
+    }
     await Promise.all(
       detailGroup.map(async (role) => {
+        if (!role.value) {
+          throw new Error('không tìm được id của các vai trò từ wso2');
+        }
         const detailRole = await getAttributes(role.value, process.env.HOST_DETAIL_ROLES, tokenRole);
         if (!detailRole) {
           throw new Error('không tìm được chi tiết role');
         }
+        // Cập nhật tên hiển thị cho detailRole
         const name = updateDisplayNameDetailRole(configRow, role.display);
         if (!name) {
           throw new Error('ko có tên role trong file config');
         }
+        // Tạo đối tượng newData với các giá trị ban đầu để cấu hình trường Role trong biến newRole
         const newData = {
           _id: role.value,
           name: name,
           data: {},
         };
+        // Lấy danh sách mảng permissions từ detailRole
         const detailRolePermission = detailRole.permissions;
+        // Cấu hình dữ liệu mới trong detailRole
         await configNewDataInDetailRole(detailRolePermission, codeModule, newData);
         newRole.data.push(newData);
         if (!role.audienceValue) {
           throw new Error('không có id của app');
         }
+        // Cập nhật id của biến convertedRole
         convertedRole.id = role.audienceValue;
         return role.audienceValue;
       }),
