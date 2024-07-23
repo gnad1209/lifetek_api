@@ -33,6 +33,7 @@ const updateDisplayNameRoleGroups = (arr, name) => {
  *  Hàm thay đổi trường methods trong nhóm vai trò dữ liệu
  * @param {Array} convertedRole - Dữ liệu nhóm vai trò đã được chuyển đổi.
  * @param {Array} newRoles - Dữ liệu nhóm vai trò mới từ API.
+ * @returns {Object} - Dữ liệu trường methods mới đã được cập nhập.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
  * @chức_năng - Hàm này thay đổi trường methods trong nhóm vai trò dữ liệu.
  */
@@ -73,6 +74,7 @@ const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
         });
       });
     });
+    return convertedRole;
   } catch (e) {
     throw e;
   }
@@ -83,6 +85,7 @@ const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
  * @param {Array} codeModle - Mảng cấu hình dữ liệu theo file config.
  * @param {Array} permissionRole - Mảng quyền hạn của vai trò.
  * @param {Array} newData - Mảng dữ liệu mới sẽ được cập nhật.
+ * @returns {Object} - Dữ liệu mới trường đã được tạo dựa theo format từ file config.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
  * @chức_năng - Hàm này tạo trường methods trong nhóm vai trò dữ liệu.
  */
@@ -125,6 +128,7 @@ const createMethodsInDataRoleGroup = (codeModle, permissionRole, newData) => {
  * @param {Array} permissionRole - Mảng quyền hạn của vai trò.
  * @param {Object} jsonData - Dữ liệu JSON đã cấu hình từ file config.
  * @param {Array} newData - Mảng dữ liệu mới sẽ được cập nhật.
+ * @returns {Object} - Dữ liệu mới đã được cấu hình theo file config.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
  * @chức_năng - Hàm này cấu hình trường methods trong nhóm vai trò dữ liệu.
  */
@@ -156,6 +160,7 @@ const configMethodsInDataRoleGroup = (permissionRole, jsonData, newData) => {
         });
       });
     });
+    return newData;
   } catch (err) {
     throw err;
   }
