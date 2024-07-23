@@ -79,7 +79,7 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
  * @param {Object} newRole - Dữ liệu vai trò mới sẽ được cập nhật.
  * @param {string} tokenRole - Mã token để truy cập API lấy thông tin role.
  * @param {Object} convertedRole - Dữ liệu vai trò đã chuyển đổi.
- * @returns {Promise<void>}
+ * @returns {string} - id của biến convertedRole.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
  * @chức_năng - Hàm này cập nhật trường role mới trong detailRole bằng cách lấy thông tin chi tiết từ WSO2 và cấu hình lại dữ liệu.
  */
