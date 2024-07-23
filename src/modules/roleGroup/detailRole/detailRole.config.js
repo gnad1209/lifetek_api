@@ -5,8 +5,8 @@ dotenv.config();
 
 /**
  * Hàm cập nhật tên hiển thị theo file config cho detailRole
- * @param {Array} arr - Mảng cấu hình tên.
- * @param {string} name - Tên ban đầu của detailRole.
+ * @param {Array} arr - Mảng cấu hình tên hiển thị của role.
+ * @param {string} name - Tên ban đầu của role.
  * @returns {string} - Tên đã được thay đổi theo cấu hình.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
  * @chức_năng - Hàm này cập nhật tên hiển thị cho detailRole dựa trên tên có sẵn trong mảng cấu hình.
@@ -33,10 +33,10 @@ const updateDisplayNameDetailRole = (arr, name) => {
   }
 };
 
-// Hàm cấu hình dữ liệu mới trong detailRole
+// Hàm cấu hình trường data mới trong detailRole
 /**
  * @param {Array} detailRolePermission - Mảng quyền hạn chi tiết của vai trò.
- * @param {Array} codeModule - Mảng cấu hình phương thức.
+ * @param {Array} codeModule - Mảng cấu hình dữ liệu theo file config.
  * @param {Object} newData - Dữ liệu mới sẽ được cập nhật.
  * @returns {Object} - Dữ liệu mới đã được cấu hình.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
@@ -74,10 +74,10 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
 
 /**
  * Hàm cập nhật dữ liệu cho trường role mới trong detailRole
- * @param {Array} detailGroup - Mảng nhóm chi tiết.
- * @param {Array} codeModule - Mảng cấu hình phương thức.
+ * @param {Array} detailGroup - Mảng nhóm chi tiết, trường roles trong dữ liệu trả về khi call api thông tin group.
+ * @param {Array} codeModule - Mảng cấu hình dữ liệu theo file config.
  * @param {Object} newRole - Dữ liệu vai trò mới sẽ được cập nhật.
- * @param {string} tokenRole - Mã token để truy cập API.
+ * @param {string} tokenRole - Mã token để truy cập API lấy thông tin role.
  * @param {Object} convertedRole - Dữ liệu vai trò đã chuyển đổi.
  * @returns {Promise<void>}
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
@@ -132,7 +132,7 @@ const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, token
         };
         // Lấy danh sách mảng permissions từ detailRole
         const detailRolePermission = detailRole.permissions;
-        // Cấu hình dữ liệu mới trong detailRole
+        // Cấu hình trường data mới trong detailRole
         await configNewDataInDetailRole(detailRolePermission, codeModule, newData);
         newRole.data.push(newData);
         if (!role.audienceValue) {

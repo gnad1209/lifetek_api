@@ -9,8 +9,8 @@ dotenv.config();
  * Hàm chuyển đổi dữ liệu chi tiết vai trò từ wso2 giống với file config
  * @param {string} id - ID của người dùng.
  * @param {Object} data - Dữ liệu người dùng cần chuyển đổi.
- * @param {string} tokenGroup - Token để truy cập API nhóm.
- * @param {string} tokenRole - Token để truy cập API vai trò.
+ * @param {string} tokenGroup - Token để truy cập API lấy thông tin nhóm.
+ * @param {string} tokenRole - Token để truy cập API lấy thông tin  vai trò.
  * @returns {Promise<Object>} - Dữ liệu vai trò đã được chuyển đổi.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
  * @chức_năng - Hàm này chuyển đổi dữ liệu chi tiết vai trò của người dùng bằng cách lấy thông tin từ WSO2 và cấu hình lại dữ liệu theo định dạng cần thiết.

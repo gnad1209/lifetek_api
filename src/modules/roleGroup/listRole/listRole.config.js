@@ -1,6 +1,6 @@
 /**
  * Hàm thay đổi tên hiển thị của nhóm vai trò dựa trên tên có sẵn trong mảng cấu hình
- * @param {Array} arr - Mảng cấu hình tên.
+ * @param {Array} arr - Mảng cấu hình tên hiển thị của nhóm vai trò.
  * @param {string} name - Tên ban đầu của nhóm vai trò.
  * @returns {string} - Tên đã được thay đổi theo cấu hình.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
@@ -80,7 +80,7 @@ const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
 
 /**
  * Hàm tạo trường methods trong nhóm vai trò
- * @param {Array} codeModle - Mảng cấu hình phương thức.
+ * @param {Array} codeModle - Mảng cấu hình dữ liệu theo file config.
  * @param {Array} permissionRole - Mảng quyền hạn của vai trò.
  * @param {Array} newData - Mảng dữ liệu mới sẽ được cập nhật.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
@@ -123,7 +123,7 @@ const createMethodsInDataRoleGroup = (codeModle, permissionRole, newData) => {
 /**
  * Hàm cấu hình trường methods theo file config trong nhóm vai trò
  * @param {Array} permissionRole - Mảng quyền hạn của vai trò.
- * @param {Object} jsonData - Dữ liệu JSON cấu hình.
+ * @param {Object} jsonData - Dữ liệu JSON đã cấu hình từ file config.
  * @param {Array} newData - Mảng dữ liệu mới sẽ được cập nhật.
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
  * @chức_năng - Hàm này cấu hình trường methods trong nhóm vai trò dữ liệu.
