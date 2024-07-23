@@ -1,4 +1,4 @@
-const jsonDataAttributes = require('../config/ex_detailRole.json');
+const jsonDataAttributes = require('../config/detail.config.json');
 const { getAttributes } = require('../roleGroup.service');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -133,7 +133,7 @@ const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, token
         // Lấy danh sách mảng permissions từ detailRole
         const detailRolePermission = detailRole.permissions;
         // Cấu hình trường data mới trong detailRole
-        await configNewDataInDetailRole(detailRolePermission, codeModule, newData);
+        configNewDataInDetailRole(detailRolePermission, codeModule, newData);
         newRole.data.push(newData);
         if (!role.audienceValue) {
           throw new Error('không có id của app');

@@ -1,0 +1,32 @@
+{
+  "Permission": [
+    {
+      "name": "GET",
+      "title": "xem"
+    },
+    {
+      "name": "POST",
+      "title": "them"
+    },
+    {
+      "name": "PUT",
+      "title": "sua"
+    },
+    {
+      "name": "DELETE",
+      "title": "xoa"
+    },
+    {
+      "name": "EXPORT",
+      "title": "xuat_file"
+    },
+    {
+      "name": "IMPORT",
+      "title": "import_file"
+    },
+    {
+      "name": "VIEWCONFIG",
+      "title": "view_config"
+    }
+  ]
+}

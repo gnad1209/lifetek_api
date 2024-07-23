@@ -5,9 +5,8 @@ const Client = require('../../model/client.shareModel');
 const getToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getList, getClientIam, getAttributes } = require('./roleGroup.service');
+const { getList, getClientIam, getAttributes, convertDataList } = require('./roleGroup.service');
 const { convertDataDetailRole } = require('./detailRole/detailRole.convert');
-const { convertDataList } = require('./listRole/listRole.convert');
 const dotenv = require('dotenv');
 dotenv.config();
 const { IAM_ENABLE, HOST_ROLES, HOST_USERS } = process.env;
@@ -74,7 +73,7 @@ async function list(req, res, next) {
     ]);
 
     // Convert data lấy từ wso2 theo file config list role
-    const convert = await convertDataList(listRoleGroups, dataListApi, accessToken);
+    const convert = await convertDataList(listRoleGroups, dataListApi, accessToken, clientId);
 
     return res.status(200).json(convert);
   } catch (e) {

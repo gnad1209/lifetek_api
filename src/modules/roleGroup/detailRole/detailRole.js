@@ -1,5 +1,5 @@
 const jsonDataCodeModule = require('../config/ex_listRole.json');
-const jsonDataAttributes = require('../config/detail.config.json');
+const jsonDataAttributes = require('../config/ex_detailRole.json');
 const { getAttributes } = require('../roleGroup.service');
 const { updateNewRoleInDetailRole } = require('./detailRole.config');
 const dotenv = require('dotenv');
