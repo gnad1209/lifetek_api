@@ -57,7 +57,9 @@ const updateMethodsInDataRoleGroup = (convertedRole, newRoles) => {
           if (!Array.isArray(newRole)) {
             throw new Error('newRole trong newRoles không phải là 1 mảng');
           }
-          // kiểm tra codeModleFnc ở wso2 có tương đồng với trong dữ liệu trong db không, nếu tương đồng thì đổi dữ liệu từ wso2 thành dữ liệu trong file config
+          /* kiểm tra codeModleFnc ở wso2 có tương đồng với trong dữ liệu trong db không,
+           * nếu tương đồng thì đổi dữ liệu từ wso2 thành dữ liệu trong file config
+           */
           newRole.forEach((n) => {
             if (
               n.codeModleFunction.includes(role.codeModleFunction) &&
@@ -103,7 +105,7 @@ const createMethodsInDataRoleGroup = (codeModle, permissionRole, newData) => {
       if (!jsonData.name) {
         return { mgs: 'file config không có name của role' };
       }
-      // Tạo đối tượng methods và thêm vào newData
+      // Tạo đối tượng methods có name là tên của role sau khi format, allow mặc định là false và thêm vào newData
       const methods = {
         name: jsonData.name,
         allow: false,

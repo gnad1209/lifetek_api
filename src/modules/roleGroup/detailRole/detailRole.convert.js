@@ -19,9 +19,26 @@ dotenv.config();
 const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
   //đang test
   try {
+    // Kiểm tra xem data từ wso2 có tồn tại không
     if (!data) {
       throw new Error('không tìm thấy data user');
     }
+
+    // Kiểm tra xem id user từ wso2 có tồn tại không
+    if (!id) {
+      throw new Error('không tìm thấy id');
+    }
+
+    // Kiểm tra xem token lấy thông tin group có tồn tại không
+    if (!tokenGroup) {
+      throw new Error('không tìm thấy tokenGroup');
+    }
+
+    // Kiểm tra xem token lấy thông tin role có tồn tại không
+    if (!tokenRole) {
+      throw new Error('không tìm thấy tokenRole');
+    }
+    //khai báo biến mới thay thế dữ liệu trong db
     const convertedRole = {
       status: 1,
       id: '',
@@ -39,9 +56,12 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
     // Biến đếm loại vai trò
     let typeCounter = 0;
 
+    // kiểm tra tokenRole có tồn tại không, nếu không trả về giá trị convertedRole ban đầu trong db
     if (!key.includes(convertedRole.moduleCode)) {
       return convertedRole;
     }
+
+    // kiểm tra data.groups có phải mảng không
     if (!Array.isArray(data.groups)) {
       throw new Error('data.groups không phải là 1 mảng');
     }
@@ -54,9 +74,13 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
         if (!detailGroup) {
           throw new Error('không tìm được chi tiết group');
         }
+
+        // kiểm tra trường roles trong detailGroup có tồn tại không
         if (!detailGroup.roles) {
           throw new Error(`không tìm được role của groups: ${group.display}`);
         }
+
+        // kiểm tra jsonDataAttributes.row có tồn tại không
         if (!jsonDataAttributes.column) {
           throw new Error('không có config cho loại chức năng này');
         }
@@ -65,6 +89,8 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
         if (!jsonDataAttributes.row) {
           throw new Error('không có config cho các vai trò này');
         }
+
+        // Tạo đối tượng newRole với các giá trị ban đầu để cấu hình trường Role trong biến convertedRole
         const newRole = {
           column: jsonDataAttributes.column,
           row: jsonDataAttributes.row,
@@ -74,6 +100,7 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
           type: typeCounter,
           name: group.display,
         };
+
         //cấu hình trường role trong biến convertedRole
         convertedRole.roles.push(newRole);
         // Tăng biến đếm lên 1 mỗi lần lặp

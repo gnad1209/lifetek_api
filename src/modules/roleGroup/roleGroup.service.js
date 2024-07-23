@@ -15,6 +15,15 @@ const agent = new https.Agent({
  * @throws {Error} - Ném ra lỗi nếu gọi API thất bại.
  */
 const getList = async (host, accessToken, clientId) => {
+  if (!host) {
+    throw new Error('không tìm thấy đường dẫn truyền vào');
+  }
+  if (!accessToken) {
+    throw new Error('không tìm thấy accessToken');
+  }
+  if (!clientId) {
+    throw new Error('không tìm thấy clientId');
+  }
   const userEndpoint = `${host}?clientId=${clientId}`;
   const configRole = {
     method: 'get',
@@ -28,6 +37,9 @@ const getList = async (host, accessToken, clientId) => {
   try {
     // Lấy data danh sách các loại hình: groups, roles, user,...
     const responseRoleGroup = await axios(configRole);
+    if (!responseRoleGroup) {
+      throw new Error('không tìm thấy dữ liệu từ wso2');
+    }
     return responseRoleGroup.data;
   } catch (error) {
     // Trả về lỗi nếu gọi API thất bại
@@ -45,8 +57,16 @@ const getList = async (host, accessToken, clientId) => {
  * @throws {Error} - Ném ra lỗi nếu gọi API thất bại.
  */
 const getAttributes = async (userId, host, accessToken) => {
+  if (!host) {
+    throw new Error('không tìm thấy đường dẫn truyền vào');
+  }
+  if (!userId) {
+    throw new Error('không tìm thấy userId');
+  }
+  if (!accessToken) {
+    throw new Error('không tìm thấy accessToken');
+  }
   const roleEndpoint = `${host}/${userId}`;
-
   const config = {
     method: 'get',
     url: roleEndpoint,
@@ -59,6 +79,9 @@ const getAttributes = async (userId, host, accessToken) => {
   try {
     // Lấy dữ liệu chi tiết của các loại hình: groups, roles, user,...
     const response = await axios(config);
+    if (!response) {
+      throw new Error('không tìm thấy dữ liệu từ wso2');
+    }
     return response.data;
   } catch (error) {
     console.error('Lỗi khi lấy thuộc tính vai trò:', error.response ? error.response.data : error.message);
