@@ -1,20 +1,27 @@
-const jsonDataCodeModule = require('../ex_listRole.json');
-const jsonDataAttributes = require('../ex_detailRole.json');
+const jsonDataCodeModule = require('../config/ex_listRole.json');
+const jsonDataAttributes = require('../config/ex_detailRole.json');
 const { getAttributes } = require('../roleGroup.service');
 const { updateNewRoleInDetailRole } = require('./detailRole.config');
 const dotenv = require('dotenv');
 dotenv.config();
 
-// Hàm chuyển đổi dữ liệu chi tiết vai trò
+/**
+ * Hàm chuyển đổi dữ liệu chi tiết vai trò từ wso2 giống với file config
+ * @param {string} id - ID của người dùng.
+ * @param {Object} data - Dữ liệu người dùng cần chuyển đổi.
+ * @param {string} tokenGroup - Token để truy cập API nhóm.
+ * @param {string} tokenRole - Token để truy cập API vai trò.
+ * @returns {Promise<Object>} - Dữ liệu vai trò đã được chuyển đổi.
+ * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
+ * @chức_năng - Hàm này chuyển đổi dữ liệu chi tiết vai trò của người dùng bằng cách lấy thông tin từ WSO2 và cấu hình lại dữ liệu theo định dạng cần thiết.
+ */
+
 const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
-  // Đang test
+  //đang test
   try {
-    // Kiểm tra xem data có tồn tại không
     if (!data) {
       throw new Error('không tìm thấy data user');
     }
-
-    // Khởi tạo đối tượng convertedRole với các thuộc tính cơ bản
     const convertedRole = {
       status: 1,
       id: '',
@@ -25,45 +32,39 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
       createdAt: data.meta.created,
       updatedAt: data.meta.lastModified,
     };
-
-    // Khai báo các module đã được cấu hình và lấy dữ liệu của các module đó
+    //khai báo các module đã được config và lấy dữ liệu của các module đó
     const key = Object.keys(jsonDataCodeModule);
     const codeModule = jsonDataCodeModule[convertedRole.moduleCode];
+
+    // Biến đếm loại vai trò
     let typeCounter = 0;
 
-    // Nếu moduleCode không có trong cấu hình, trả về convertedRole
     if (!key.includes(convertedRole.moduleCode)) {
       return convertedRole;
     }
-
-    // Kiểm tra xem data.groups có phải là mảng không
     if (!Array.isArray(data.groups)) {
       throw new Error('data.groups không phải là 1 mảng');
     }
-
-    // Xử lý từng nhóm trong data.groups
     await Promise.all(
       data.groups.map(async (group) => {
-        // Lấy chi tiết dữ liệu của nhóm từ WSO2
+        //lấy dữ liệu chi tiết groups trong wso2
         const detailGroup = await getAttributes(group.value, process.env.HOST_GROUPS, tokenGroup);
-        if (!detailGroup) {
-          throw new Error('không tìm tìm được chi tiết group');
-        }
 
-        // Kiểm tra xem detailGroup có thuộc tính roles không
+        // kiểm tra detailGroup có tồn tại không
+        if (!detailGroup) {
+          throw new Error('không tìm được chi tiết group');
+        }
         if (!detailGroup.roles) {
           throw new Error(`không tìm được role của groups: ${group.display}`);
         }
-
-        // Kiểm tra cấu hình của loại chức năng và các vai trò
         if (!jsonDataAttributes.column) {
           throw new Error('không có config cho loại chức năng này');
         }
+
+        // kiểm tra jsonDataAttributes.row có tồn tại không
         if (!jsonDataAttributes.row) {
           throw new Error('không có config cho các vai trò này');
         }
-
-        // Khởi tạo đối tượng newRole với thông tin từ nhóm
         const newRole = {
           column: jsonDataAttributes.column,
           row: jsonDataAttributes.row,
@@ -73,17 +74,14 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
           type: typeCounter,
           name: group.display,
         };
-
-        // Thêm newRole vào thuộc tính roles của convertedRole
+        //cấu hình trường role trong biến convertedRole
         convertedRole.roles.push(newRole);
+        // Tăng biến đếm lên 1 mỗi lần lặp
         typeCounter++;
-
-        // Cập nhật các thông tin mới cho vai trò trong convertedRole
+        //thêm và sửa các phần trường trong detailRole
         await updateNewRoleInDetailRole(detailGroup.roles, codeModule, newRole, tokenRole, convertedRole);
       }),
     );
-
-    // Trả về đối tượng convertedRole đã được cập nhật
     return convertedRole;
   } catch (e) {
     throw e;

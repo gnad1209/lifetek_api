@@ -4,61 +4,82 @@ const {
   createMethodsInDataRoleGroup,
   updateMethodsInDataRoleGroup,
 } = require('./listRole.config');
-const jsonDataCodeModule = require('../ex_listRole.json');
-const jsonDataAttributes = require('../ex_detailRole.json');
+const jsonDataCodeModule = require('../config/ex_listRole.json');
+const jsonDataAttributes = require('../config/ex_detailRole.json');
 const dotenv = require('dotenv');
 dotenv.config();
 
-// Hàm chuyển đổi dữ liệu danh sách roleGroups
+/**
+ * Hàm chuyển đổi dữ liệu roleGroups từ wso2 có fomat giống file config
+ * @param {Object} dataDb - Dữ liệu role groups từ cơ sở dữ liệu.
+ * @param {Object} dataApi - Dữ liệu role groups từ API.
+ * @param {string} accessToken - Token truy cập để xác thực lấy danh sách role.
+ * @returns {Object} - Dữ liệu role groups đã được chuyển đổi thông qua file config listRole.
+ * @throws {Error} - Ném ra lỗi nếu có bất kỳ lỗi nào xảy ra trong quá trình xử lý.
+ */
 const convertDataList = async (dataDb, dataApi, accessToken) => {
   try {
-    const convertedRole = dataDb; // Sao chép dữ liệu vai trò đã chuyển đổi
-    const newRoles = []; // Mảng để lưu trữ các vai trò mới
-    const resourcesApi = dataApi.Resources; // Lấy dữ liệu tài nguyên từ API
-    const configRow = jsonDataAttributes.configRow; // Lấy cấu hình hàng từ file JSON
-    const convertedRoleData = convertedRole?.data; // Lấy dữ liệu của vai trò đã chuyển đổi
+    const convertedRole = dataDb; // Gán dữ liệu từ cơ sở dữ liệu vào biến convertedRole
+    const newRoles = []; // Khởi tạo mảng newRoles để lưu các vai trò mới
+    const resourcesApi = dataApi.Resources; // Lấy dữ liệu Resources từ dataApi
+    const configRow = jsonDataAttributes.configRow; // Lấy cấu hình hàng từ jsonDataAttributes
+    const convertedRoleData = convertedRole?.data; // Lấy dữ liệu data từ convertedRole
 
-    // Kiểm tra dữ liệu đầu vào
-    if (!convertedRole?.data) {
-      throw new Error('dữ liệu db không tồn tại');
+    if (!resourcesApi) {
+      // Kiểm tra xem resourcesApi có tồn tại không
+      throw new Error('trường resourcesApi từ dữ liệu của api không tồn tại');
+    }
+    if (!configRow) {
+      // Kiểm tra xem configRow có tồn tại không
+      throw new Error('dữ liệu config không tồn tại');
+    }
+    if (!convertedRoleData) {
+      // Kiểm tra xem convertedRoleData có tồn tại không
+      throw new Error('trường data trong db không tồn tại');
     }
     if (!Array.isArray(resourcesApi)) {
+      // Kiểm tra xem resourcesApi có phải là mảng không
       throw new Error('resources không phải là 1 mảng');
     }
 
-    // Xử lý từng vai trò trong resourcesApi
     await Promise.all(
       resourcesApi.map(async (role) => {
-        // Nếu không có id trong role, trả về dữ liệu đã chuyển đổi
         if (!role.id) {
+          // Nếu role.id không tồn tại, trả về convertedRole ban đầu trong db
           return convertedRole;
         }
-
-        // Lấy chi tiết dữ liệu của vai trò từ WSO2
+        if (!process.env.HOST_DETAIL_ROLES) {
+          // Kiểm tra xem HOST_DETAIL_ROLES có tồn tại không
+          throw new Error('đường dẫn lấy chi tiết role trong wso2 không đúng');
+        }
+        // Lấy giá trị chi tiết role
         const dataDetailRole = await getAttributes(role.id, process.env.HOST_DETAIL_ROLES, accessToken);
 
-        // Cập nhật tên hiển thị của roleGroups theo cấu hình
+        // Sửa displayName trong roleGroups đúng format
         const displayName = updateDisplayNameRoleGroups(configRow, role.displayName);
 
-        // Lấy dữ liệu cấu hình của module từ file JSON
+        // Lấy dữ liệu trong file config
         const codeModle = jsonDataCodeModule[displayName];
         const permissionRole = dataDetailRole.permissions;
 
-        // Kiểm tra dữ liệu chi tiết vai trò và cấu hình module
         if (!dataDetailRole) {
+          // Kiểm tra xem dataDetailRole có tồn tại không
           throw new Error(`không tìm được bản ghi có id: ${role.id}`);
         }
         if (!dataDetailRole.displayName) {
-          throw new Error(`không có displayName`);
+          // Kiểm tra xem displayName có tồn tại không
+          throw new Error('không có displayName');
         }
         if (!codeModle) {
+          // Kiểm tra xem codeModle có tồn tại không
           throw new Error(`file config không tìm thấy module: ${displayName}`);
         }
         if (!Array.isArray(permissionRole)) {
+          // Kiểm tra xem permissionRole có phải là mảng không
           throw new Error('rolePermission không phải là 1 mảng');
         }
 
-        // Khởi tạo đối tượng mới với thông tin vai trò
+        // Khởi tạo biến newData, cấu hình trường data từ dữ liệu trong db theo file config listRole
         const newData = [
           {
             _id: role.id,
@@ -68,14 +89,14 @@ const convertDataList = async (dataDb, dataApi, accessToken) => {
           },
         ];
 
-        // Tạo các phương thức mới trong dữ liệu vai trò
+        // Tạo mới trường method trong biến convertedRole
         createMethodsInDataRoleGroup(codeModle, permissionRole, newData);
         newRoles.push(newData); // Thêm vai trò mới vào mảng newRoles
         return newRoles;
       }),
     );
 
-    // Nếu không có vai trò mới, trả về dữ liệu đã chuyển đổi ban đầu
+    // Nếu không có dữ liệu mới, hãy trả lại convertedRole ban đầu
     if (newRoles.length === 0) {
       return convertedRole;
     }
