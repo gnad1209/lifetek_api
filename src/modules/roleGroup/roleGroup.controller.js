@@ -5,7 +5,7 @@ const Client = require('../../model/client.shareModel');
 const getToken = require('../../service/getToken.shareService');
 
 const RoleGroup = require('./roleGroup.model');
-const { getList, checkClientIam, getAttributes } = require('./roleGroup.service');
+const { getList, getClientIam, getAttributes } = require('./roleGroup.service');
 const { convertDataDetailRole } = require('./detailRole/detailRole.convert');
 const { convertDataList } = require('./listRole/listRole.convert');
 const dotenv = require('dotenv');
@@ -473,7 +473,7 @@ async function iamUserBussinessRole(req, res, next) {
       return res.status(404).json({ msg: 'Không tìm thấy IamClient' });
     }
 
-    const clientIam = await checkClientIam(iamClientDb);
+    const clientIam = getClientIam(iamClientDb);
 
     // Lấy ID và mật khẩu của IAM client
     if (!clientIam.iamClientId || !clientIam.iamClientSecret) {

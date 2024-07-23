@@ -52,8 +52,11 @@ const getAttributes = async (userId, host, accessToken) => {
 };
 
 //Hàm kiểm tra ClientIam trong db
-const checkClientIam = (iamClient) => {
+const getClientIam = (iamClient) => {
   try {
+    if (!iamClient) {
+      return e;
+    }
     const iamClientId = iamClient.iamClientId;
     const iamClientSecret = iamClient.iamClientSecret;
     return { iamClientId: iamClientId, iamClientSecret: iamClientSecret };
@@ -64,6 +67,6 @@ const checkClientIam = (iamClient) => {
 
 module.exports = {
   getList,
-  checkClientIam,
+  getClientIam,
   getAttributes,
 };

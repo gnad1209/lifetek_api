@@ -7,11 +7,14 @@ dotenv.config();
 
 // Hàm chuyển đổi dữ liệu chi tiết vai trò
 const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
-  //đang test
+  // Đang test
   try {
+    // Kiểm tra xem data có tồn tại không
     if (!data) {
       throw new Error('không tìm thấy data user');
     }
+
+    // Khởi tạo đối tượng convertedRole với các thuộc tính cơ bản
     const convertedRole = {
       status: 1,
       id: '',
@@ -22,33 +25,45 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
       createdAt: data.meta.created,
       updatedAt: data.meta.lastModified,
     };
-    //khai báo các module đã được config và lấy dữ liệu của các module đó
+
+    // Khai báo các module đã được cấu hình và lấy dữ liệu của các module đó
     const key = Object.keys(jsonDataCodeModule);
     const codeModule = jsonDataCodeModule[convertedRole.moduleCode];
     let typeCounter = 0;
 
+    // Nếu moduleCode không có trong cấu hình, trả về convertedRole
     if (!key.includes(convertedRole.moduleCode)) {
       return convertedRole;
     }
+
+    // Kiểm tra xem data.groups có phải là mảng không
     if (!Array.isArray(data.groups)) {
       throw new Error('data.groups không phải là 1 mảng');
     }
+
+    // Xử lý từng nhóm trong data.groups
     await Promise.all(
       data.groups.map(async (group) => {
-        //lấy dữ liệu chi tiết groups trong wso2
+        // Lấy chi tiết dữ liệu của nhóm từ WSO2
         const detailGroup = await getAttributes(group.value, process.env.HOST_GROUPS, tokenGroup);
         if (!detailGroup) {
           throw new Error('không tìm tìm được chi tiết group');
         }
+
+        // Kiểm tra xem detailGroup có thuộc tính roles không
         if (!detailGroup.roles) {
           throw new Error(`không tìm được role của groups: ${group.display}`);
         }
+
+        // Kiểm tra cấu hình của loại chức năng và các vai trò
         if (!jsonDataAttributes.column) {
           throw new Error('không có config cho loại chức năng này');
         }
         if (!jsonDataAttributes.row) {
           throw new Error('không có config cho các vai trò này');
         }
+
+        // Khởi tạo đối tượng newRole với thông tin từ nhóm
         const newRole = {
           column: jsonDataAttributes.column,
           row: jsonDataAttributes.row,
@@ -58,13 +73,17 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
           type: typeCounter,
           name: group.display,
         };
-        //cấu hình trường role trong biến convertedRole
+
+        // Thêm newRole vào thuộc tính roles của convertedRole
         convertedRole.roles.push(newRole);
         typeCounter++;
-        //thêm và sửa các phần trường trong detailRole
+
+        // Cập nhật các thông tin mới cho vai trò trong convertedRole
         await updateNewRoleInDetailRole(detailGroup.roles, codeModule, newRole, tokenRole, convertedRole);
       }),
     );
+
+    // Trả về đối tượng convertedRole đã được cập nhật
     return convertedRole;
   } catch (e) {
     throw e;
