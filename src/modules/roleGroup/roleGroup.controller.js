@@ -42,12 +42,12 @@ async function list(req, res, next) {
       return res.status(200).json(listRoleGroups);
     }
 
-    // Kiểm tra clientId có trong bảng clientIam không
     const iamClientDb = await Client.findOne({ clientId: clientId });
+    // Kiểm tra clientId có trong bảng clientIam không
     if (!iamClientDb) {
       return res.status(400).json({ msg: 'No IAM config for clientId' });
     }
-
+    // Lấy giá trị của clientIam từ db
     const clientIam = getClientIam(iamClientDb);
 
     // Kiểm tra iamClientId và iamClientSecret tồn tại không
