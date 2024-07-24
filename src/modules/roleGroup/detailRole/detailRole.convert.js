@@ -69,7 +69,7 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
       data.groups.map(async (group) => {
         //lấy dữ liệu chi tiết groups trong wso2
         const detailGroup = await getAttributes(group.value, process.env.HOST_GROUPS, tokenGroup);
-
+        console.log(detailGroup);
         // kiểm tra detailGroup có tồn tại không
         if (!detailGroup) {
           throw new Error('không tìm được chi tiết group');

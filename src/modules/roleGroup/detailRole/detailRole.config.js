@@ -83,7 +83,7 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
  * @throws {Error} - Ném ra lỗi nếu có lỗi trong quá trình xử lý.
  * @chức_năng - Hàm này cập nhật trường role mới trong detailRole bằng cách lấy thông tin chi tiết từ WSO2 và cấu hình lại dữ liệu.
  */
-const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, tokenRole, convertedRole) => {
+const   updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, tokenRole, convertedRole) => {
   try {
     // Lấy cấu hình các vai trò từ jsonDataAttributes
     const configRow = jsonDataAttributes.configOutGoingDocument;
@@ -143,7 +143,31 @@ const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, token
           convertedRole.id = role.audienceValue;
           return role.audienceValue;
         }
-      }),
+        if(role.display.includes("OutGoingDocument")) {
+        // Cập nhật tên hiển thị cho detailRole
+        const name = updateDisplayNameDetailRole(configRow, role.display);
+        if (!name) {
+          // Kiểm tra name sau khi sửa có tồn tại hay không
+          throw new Error('ko có tên role trong file config');
+        }
+        // Tạo đối tượng newData với các giá trị ban đầu để cấu hình trường Role trong biến newRole
+        const newData = {
+          _id: role.value,
+          name: name,
+          data: {},
+        };
+        // Lấy danh sách mảng permissions từ detailRole
+        const detailRolePermission = detailRole.permissions;
+        // Cấu hình trường data mới trong detailRole
+        configNewDataInDetailRole(detailRolePermission, codeModule, newData);
+        newRole.data.push(newData);
+        if (!role.audienceValue) {
+          throw new Error('không có id của app');
+        }
+        // Cập nhật id của biến convertedRole
+        convertedRole.id = role.audienceValue;
+        return role.audienceValue;
+      }}),
     );
   } catch (e) {
     throw e;
