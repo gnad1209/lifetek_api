@@ -73,10 +73,6 @@
     {
       "name": "recall",
       "title": "thu_hoi"
-    },
-    {
-      "name": "set_feedback",
-      "title": "xin_y_kien"
     }
   ]
 }

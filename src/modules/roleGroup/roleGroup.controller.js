@@ -518,7 +518,6 @@ async function iamUserBussinessRole(req, res, next) {
 
     // Lấy các thuộc tính của user
     const roleGroupAttributes = await getAttributes(userId, process.env.HOST_USERS, tokenUsers);
-
     // Nếu không lấy được các thuộc tính của user trả về phản hồi lỗi
     if (!roleGroupAttributes) {
       return res.status(400).json({ msg: 'Không thể lấy vai trò' });
