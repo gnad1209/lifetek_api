@@ -86,7 +86,7 @@ const configNewDataInDetailRole = (detailRolePermission, codeModule, newData) =>
 const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, tokenRole, convertedRole) => {
   try {
     // Lấy cấu hình các vai trò từ jsonDataAttributes
-    const configRow = jsonDataAttributes.configRow;
+    const configRow = jsonDataAttributes.configOutGoingDocument;
     if (!detailGroup) {
       // Kiểm tra nếu detailGroup không tồn tại
       throw new Error('ko có tên role trong file config');
@@ -113,34 +113,36 @@ const updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, token
           // Kiểm tra id trong trường role có tồn tại hay không
           throw new Error('không tìm được id của các vai trò từ wso2');
         }
-        const detailRole = await getAttributes(role.value, process.env.HOST_DETAIL_ROLES, tokenRole);
-        if (!detailRole) {
-          // Kiểm tra có tìm được detailRole hay không
-          throw new Error('không tìm được chi tiết role');
+        if (role.display.includes("OutGoingDocument")) {
+          const detailRole = await getAttributes(role.value, process.env.HOST_DETAIL_ROLES, tokenRole);
+          if (!detailRole) {
+            // Kiểm tra có tìm được detailRole hay không
+            throw new Error('không tìm được chi tiết role');
+          }
+          // Cập nhật tên hiển thị cho detailRole
+          const name = updateDisplayNameDetailRole(configRow, role.display);
+          if (!name) {
+            // Kiểm tra name sau khi sửa có tồn tại hay không
+            throw new Error('ko có tên role trong file config');
+          }
+          // Tạo đối tượng newData với các giá trị ban đầu để cấu hình trường Role trong biến newRole
+          const newData = {
+            _id: role.value,
+            name: name,
+            data: {},
+          };
+          // Lấy danh sách mảng permissions từ detailRole
+          const detailRolePermission = detailRole.permissions;
+          // Cấu hình trường data mới trong detailRole
+          configNewDataInDetailRole(detailRolePermission, codeModule, newData);
+          newRole.data.push(newData);
+          if (!role.audienceValue) {
+            throw new Error('không có id của app');
+          }
+          // Cập nhật id của biến convertedRole
+          convertedRole.id = role.audienceValue;
+          return role.audienceValue;
         }
-        // Cập nhật tên hiển thị cho detailRole
-        const name = updateDisplayNameDetailRole(configRow, role.display);
-        if (!name) {
-          // Kiểm tra name sau khi sửa có tồn tại hay không
-          throw new Error('ko có tên role trong file config');
-        }
-        // Tạo đối tượng newData với các giá trị ban đầu để cấu hình trường Role trong biến newRole
-        const newData = {
-          _id: role.value,
-          name: name,
-          data: {},
-        };
-        // Lấy danh sách mảng permissions từ detailRole
-        const detailRolePermission = detailRole.permissions;
-        // Cấu hình trường data mới trong detailRole
-        configNewDataInDetailRole(detailRolePermission, codeModule, newData);
-        newRole.data.push(newData);
-        if (!role.audienceValue) {
-          throw new Error('không có id của app');
-        }
-        // Cập nhật id của biến convertedRole
-        convertedRole.id = role.audienceValue;
-        return role.audienceValue;
       }),
     );
   } catch (e) {

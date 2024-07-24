@@ -81,19 +81,19 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
         }
 
         // kiểm tra jsonDataAttributes.row có tồn tại không
-        if (!jsonDataAttributes.column) {
+        if (!jsonDataAttributes.columnOutGoingDocument) {
           throw new Error('không có config cho loại chức năng này');
         }
 
         // kiểm tra jsonDataAttributes.row có tồn tại không
-        if (!jsonDataAttributes.row) {
+        if (!jsonDataAttributes.rowOutGoingDocument) {
           throw new Error('không có config cho các vai trò này');
         }
 
         // Tạo đối tượng newRole với các giá trị ban đầu để cấu hình trường Role trong biến convertedRole
         const newRole = {
-          column: jsonDataAttributes.column,
-          row: jsonDataAttributes.row,
+          column: jsonDataAttributes.columnOutGoingDocument,
+          row: jsonDataAttributes.rowOutGoingDocument,
           data: [],
           _id: group.value,
           code: group.display,

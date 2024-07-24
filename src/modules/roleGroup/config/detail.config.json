@@ -171,6 +171,10 @@
     {
       "name": "recall",
       "title": "Thu hồi"
+    },
+    {
+      "name": "set_feedback",
+      "title": "Xin ý kiến"
     }
   ],
   "configOutGoingDocument": [
@@ -205,6 +209,10 @@
     {
       "name": "findStatistics",
       "title": "tra_cuu_thong_ke"
+    },
+    {
+      "name": "set_feedback",
+      "title": "xin_y_kien"
     }
   ]
 }
