@@ -134,7 +134,7 @@ const   updateNewRoleInDetailRole = async (detailGroup, codeModule, newRole, tok
         // Lấy danh sách mảng permissions từ detailRole
         const detailRolePermission = detailRole.permissions;
         // Cấu hình trường data mới trong detailRole
-        await configNewDataInDetailRole(detailRolePermission, codeModule, newData);
+        configNewDataInDetailRole(detailRolePermission, codeModule, newData);
         newRole.data.push(newData);
         if (!role.audienceValue) {
           throw new Error('không có id của app');
