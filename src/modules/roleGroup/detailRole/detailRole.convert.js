@@ -42,7 +42,7 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
     const convertedRole = {
       status: 1,
       id: '',
-      moduleCode: 'IncommingDocument',
+      moduleCode: 'OutGoingDocument',
       userId: id,
       roles: [],
       __v: 0,
@@ -69,7 +69,7 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
       data.groups.map(async (group) => {
         //lấy dữ liệu chi tiết groups trong wso2
         const detailGroup = await getAttributes(group.value, process.env.HOST_GROUPS, tokenGroup);
-
+        console.log(detailGroup);
         // kiểm tra detailGroup có tồn tại không
         if (!detailGroup) {
           throw new Error('không tìm được chi tiết group');
@@ -81,19 +81,19 @@ const convertDataDetailRole = async (id, data, tokenGroup, tokenRole) => {
         }
 
         // kiểm tra jsonDataAttributes.row có tồn tại không
-        if (!jsonDataAttributes.column) {
+        if (!jsonDataAttributes.columnOutGoingDocument) {
           throw new Error('không có config cho loại chức năng này');
         }
 
         // kiểm tra jsonDataAttributes.row có tồn tại không
-        if (!jsonDataAttributes.row) {
+        if (!jsonDataAttributes.rowOutGoingDocument) {
           throw new Error('không có config cho các vai trò này');
         }
 
         // Tạo đối tượng newRole với các giá trị ban đầu để cấu hình trường Role trong biến convertedRole
         const newRole = {
-          column: jsonDataAttributes.column,
-          row: jsonDataAttributes.row,
+          column: jsonDataAttributes.columnOutGoingDocument,
+          row: jsonDataAttributes.rowOutGoingDocument,
           data: [],
           _id: group.value,
           code: group.display,

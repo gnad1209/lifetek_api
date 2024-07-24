@@ -171,6 +171,10 @@
     {
       "name": "recall",
       "title": "Thu hồi"
+    },
+    {
+      "name": "set_feedback",
+      "title": "Xin ý kiến"
     }
   ],
   "configOutGoingDocument": [
